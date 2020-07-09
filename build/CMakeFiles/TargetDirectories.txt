@@ -1,5 +1,0 @@
-/d/Scripts/Vita/VEngine/build/CMakeFiles/rebuild_cache.dir
-/d/Scripts/Vita/VEngine/build/CMakeFiles/edit_cache.dir
-/d/Scripts/Vita/VEngine/build/CMakeFiles/VEngine.vpk.dir
-/d/Scripts/Vita/VEngine/build/CMakeFiles/VEngine.dir
-/d/Scripts/Vita/VEngine/build/CMakeFiles/VEngine.self.dir
