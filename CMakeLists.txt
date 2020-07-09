@@ -51,9 +51,9 @@ link_directories(
 # Add all the files needed to compile here
 add_executable(${PROJECT_NAME}
   src/main.cpp
+  ../common/font.c
   src/VEngine.h
   src/VEngine.cpp
-  ../common/font.c
 )
 
 # Library to link to (drop the -l prefix). This will mostly be stubs.
