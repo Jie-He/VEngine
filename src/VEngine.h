@@ -2,7 +2,6 @@
 #ifndef _VENGINE_
 #define _VENGINE_
 #include <psp2/kernel/processmgr.h>
-#include <psp2/gxm.h>
 
 // Some default C++ stuff
 #include <stdio.h>
@@ -46,15 +45,15 @@ class VEngine{
         vita2d_font *font;
 
         // Resolution
-        const int screen_width = 960;
-        const int screen_height= 544;
+        const int SCREEN_WIDTH = 960;
+        const int SCREEN_HEIGHT= 544;
 
         // Perspective stuff
         float fNear         = 0.1f;
         float fFar          = 100.0f;
         float fFov          = 90.0f;
-        float fAspectRatio  = (float)(screen_height/screen_width);
-        float fFovRad       = 1.0f / tanf(fFov * 0.5f / 180.0f * 3.14159f);
+        float fAspectRatio  = (float)(SCREEN_HEIGHT/SCREEN_WIDTH);
+        float fFovRad       = 1.0f / tanf( (fFov * 0.5f / 180.0f * 3.14159f) );
 
         mat4x4 matProjection;
 

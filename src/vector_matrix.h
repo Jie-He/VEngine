@@ -15,7 +15,7 @@ struct vec3d{
 };
 
 struct triangle{
-    vec3d vertex[3];
+    vec3d p[3];
     // A base colour for this face?
 };
 
@@ -29,6 +29,6 @@ struct mat4x4{
 
 
 // operation on vector && matrix
-vec3d Matrix_MultiplyVector(mat4x4 &m, vec3d &i)
+vec3d Matrix_MultiplyVector(mat4x4 &m, vec3d &i);
 
 #endif//_VEC_MAT_

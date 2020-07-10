@@ -62,7 +62,7 @@ void VEngine::ve_clock(){
 
 // Draw a single mesh [RE]
 void VEngine::draw_mesh(mesh& mh){
-    for (auto tri : mh){
+    for (auto tri : mh.tris){
         triangle triProjected;
         triProjected.p[0] = Matrix_MultiplyVector(matProjection, triProjected.p[0]);
         triProjected.p[1] = Matrix_MultiplyVector(matProjection, triProjected.p[1]);
