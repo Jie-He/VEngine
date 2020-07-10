@@ -10,20 +10,11 @@ void VEngine::stop(){
     ve_clock();
 }
 
-// Before wasting this object. clear some free memory
-void VEngine::destory(){
-
-    // Release drawing stuff
-    vita2d_init();
-    vita2d_free_font(font);
-}
-
 // Main clock
 void VEngine::ve_clock(){
     
     // For FPS information
-    char buff[16];
-	
+    char buff[16];	
 
     // maybe get an clock ticking?
 	auto cTimeStamp = std::chrono::system_clock::now();
@@ -42,9 +33,16 @@ void VEngine::ve_clock(){
         // Conversion && FPS
         fFPS = 1 / fElapsedTime;
 
-        // init the drawing 
+        // Clear screen 
+        #ifdef PSVITA       
         vita2d_start_drawing();
 		vita2d_clear_screen();
+        #endif
+
+        // OPENCV CLEAR SCREEN
+        #ifdef OPENCV
+        canvas = world_colour;
+        #endif
         
         // Call update function
         update(fElapsedTime);		
@@ -52,10 +50,21 @@ void VEngine::ve_clock(){
 
         // FPS info
         sprintf(buff, "FPS: %6.3f", fFPS);
+        #ifdef PSVITA
         vita2d_font_draw_text(font, 20, 20, WHITE, 11, buff);
-
-		vita2d_end_drawing();
+        vita2d_end_drawing();
 		vita2d_swap_buffers();
+        #endif
+
+        // OPENCV DRAW FPS INFO
+        #ifdef OPENCV
+        cv::putText(canvas, buff, cv::Point(10, 20),
+                    cv::FONT_HERSHEY_DUPLEX,
+                    0.5, CV_RGB(255, 255, 255), 1);
+        // OPENCV DRAW SCREEN && WAIT
+        imshow("VEngine", canvas);
+        keypress = cv::waitKey(1);
+        #endif
     }
 
 }
@@ -64,9 +73,9 @@ void VEngine::ve_clock(){
 void VEngine::draw_mesh(mesh& mh){
     for (auto tri : mh.tris){
         triangle triProjected;
-        triProjected.p[0] = Matrix_MultiplyVector(matProjection, triProjected.p[0]);
-        triProjected.p[1] = Matrix_MultiplyVector(matProjection, triProjected.p[1]);
-        triProjected.p[2] = Matrix_MultiplyVector(matProjection, triProjected.p[2]);
+        triProjected.p[0] = matMultiplyVector(matProjection, triProjected.p[0]);
+        triProjected.p[1] = matMultiplyVector(matProjection, triProjected.p[1]);
+        triProjected.p[2] = matMultiplyVector(matProjection, triProjected.p[2]);
 
         draw_triangle(triProjected);
 
@@ -74,14 +83,32 @@ void VEngine::draw_mesh(mesh& mh){
 }
 
 // Drawing a triangle
-void VEngine::draw_triangle(triangle& t){
+void VEngine::draw_triangle(triangle& tri){
     // draw the three lines
-    vita2d_draw_line(t.p[0].x, t.p[0].y,
-					 t.p[1].x, t.p[1].y, CRIMSON);
     
-    vita2d_draw_line(t.p[0].x, t.p[0].y,
-					 t.p[2].x, t.p[2].y, BLUE);
+    #ifdef PSVITA
+    vita2d_draw_line(tri.p[0].x, tri.p[0].y,
+					 tri.p[1].x, tri.p[1].y, CRIMSON);
     
-    vita2d_draw_line(t.p[2].x, t.p[2].y,
-					 t.p[1].x, t.p[1].y, SEAGREEN);
+    vita2d_draw_line(tri.p[0].x, tri.p[0].y,
+					 tri.p[2].x, tri.p[2].y, BLUE);
+    
+    vita2d_draw_line(tri.p[2].x, tri.p[2].y,
+					 tri.p[1].x, tri.p[1].y, SEAGREEN);
+    #endif
+
+    // OPENCV DRAW TRIANGLE
+    #ifdef OPENCV
+    cv::line(canvas, cv::Point(tri.p[0].x, tri.p[0].y),
+                     cv::Point(tri.p[1].x, tri.p[1].y),
+                     cv::Scalar(255,0,0), 1);
+
+    cv::line(canvas, cv::Point(tri.p[2].x, tri.p[2].y),
+                     cv::Point(tri.p[1].x, tri.p[1].y),
+                     cv::Scalar(0,255,0), 1);
+
+    cv::line(canvas, cv::Point(tri.p[0].x, tri.p[0].y),
+                     cv::Point(tri.p[2].x, tri.p[2].y),
+                     cv::Scalar(0,0,255), 1);       
+    #endif
 }

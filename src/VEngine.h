@@ -1,7 +1,21 @@
 // A simple 3D Engine, mostly from online resources
 #ifndef _VENGINE_
 #define _VENGINE_
+
+// VITA stuff
+#ifdef PSVITA
 #include <psp2/kernel/processmgr.h>
+// For drawing
+#include <vita2d.h>
+#endif 
+
+// OPENCV temp
+// OpenCV things
+#ifdef OPENCV
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/highgui.hpp>
+#endif
 
 // Some default C++ stuff
 #include <stdio.h>
@@ -14,9 +28,6 @@
 // Include the matrix and vector structs
 #include "vector_matrix.h"
 
-// For drawing
-#include <vita2d.h>
-
 // For timer
 #include <chrono>
 #include <ctime>
@@ -25,6 +36,7 @@
 #include <math.h>
 
 // Define some colours
+#ifdef PSVITA
 #define BLACK       RGBA8(0x00, 0x00, 0x00, 0xFF)
 #define WHITE       RGBA8(0xFF, 0xFF, 0xFF, 0xFF)
 #define CRIMSON     RGBA8(0xFF, 0x24, 0x00, 0xFF)
@@ -35,18 +47,29 @@
 // font buffer
 extern unsigned int basicfont_size;
 extern unsigned char basicfont[];
+#endif
 
 class VEngine{
     public:
-        // World information
-
         // Control input
         bool bClockOn = false;
+        #ifdef PSVITA
         vita2d_font *font;
+        #endif
+     
 
         // Resolution
         const int SCREEN_WIDTH = 960;
         const int SCREEN_HEIGHT= 544;
+
+        // World information
+        // OPENCV: canvas, color, input
+        #ifdef OPENCV
+        cv::Mat canvas          = cv::Mat::zeros(SCREEN_HEIGHT, SCREEN_WIDTH, CV_8UC3);
+        cv::Scalar world_colour = cv::Scalar(0, 0, 0);
+        char keypress;
+        #endif
+        // VITA CTRL
 
         // Perspective stuff
         float fNear         = 0.1f;
@@ -63,9 +86,11 @@ class VEngine{
         VEngine(){
             // do some default initialisation
             // Initialise 
+            #ifdef PSVITA
             vita2d_init();
             vita2d_set_clear_color(AMBER);
             font = vita2d_load_font_mem(basicfont, basicfont_size);
+            #endif
 
             // init the mat_proj values [RE]
             matProjection.m[0][0] = fAspectRatio * fFovRad;
@@ -76,11 +101,20 @@ class VEngine{
             matProjection.m[3][3] = 0.0f;
         };
         // do it later
-        // ~VEngine();
+        ~VEngine(){
+            // Release drawing stuff
+            #ifdef PSVITA
+            vita2d_init();
+            vita2d_free_font(font);
+
+            // Call exit
+            sceKernelExitProcess(0);
+            #endif
+        }
 
         void start();   // set clock  on and call clock
         void stop();    // set clock off and call clock
-        void destory(); // call this last to release memory?
+        //void destory(); // call this last to release memory?
 
         // Drawing stuff
         void draw_triangle(triangle&);
