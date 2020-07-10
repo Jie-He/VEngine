@@ -52,27 +52,27 @@ link_directories(
 add_executable(${PROJECT_NAME}
   src/main.cpp
   ../common/font.c
+  src/vector_matrix.h
+  src/vector_matrix.cpp
   src/VEngine.h
   src/VEngine.cpp
 )
 
 # Library to link to (drop the -l prefix). This will mostly be stubs.
 target_link_libraries(${PROJECT_NAME}
-  SceLibKernel_stub # this line is only for demonstration. It's not needed as
-                    # the most common stubs are automatically included.
   stdc++
-  vita2d 
-  soloud
-  pthread
-  SceDisplay_stub
-  SceGxm_stub
   SceLibKernel_stub 
+  vita2d 
+  SceDisplay_stub
+  SceGxm_stub 
+  SceSysmodule_stub
   SceCtrl_stub 
-  SceTouch_stub 
-  SceSysmodule_stub  
+  SceTouch_stub  
   SceCommonDialog_stub 
   SceAudio_stub
+  SceAppMgr_stub
   freetype
+  pthread
   png
   z
   m
