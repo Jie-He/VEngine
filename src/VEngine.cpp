@@ -2,6 +2,7 @@
 
 void VEngine::start(){
     bClockOn = true;
+    onCreate();
     ve_clock();
 }
 
@@ -37,6 +38,9 @@ void VEngine::ve_clock(){
         #ifdef PSVITA       
         vita2d_start_drawing();
 		vita2d_clear_screen();
+
+        // Get controller input
+        sceCtrlPeekBufferPositive(0, &ctrl, 1);
         #endif
 
         // OPENCV CLEAR SCREEN
@@ -46,7 +50,6 @@ void VEngine::ve_clock(){
         
         // Call update function
         update(fElapsedTime);		
-
 
         // FPS info
         sprintf(buff, "FPS: %6.3f", fFPS);
@@ -72,13 +75,24 @@ void VEngine::ve_clock(){
 // Draw a single mesh [RE]
 void VEngine::draw_mesh(mesh& mh){
     for (auto tri : mh.tris){
-        triangle triProjected;
-        triProjected.p[0] = matMultiplyVector(matProjection, triProjected.p[0]);
-        triProjected.p[1] = matMultiplyVector(matProjection, triProjected.p[1]);
-        triProjected.p[2] = matMultiplyVector(matProjection, triProjected.p[2]);
+        triangle triProjected, triTranslate, triScale;
+        // Project the vec3d with the projection matrix
+        triProjected.p[0] = matMultiplyVector(matProjection, tri.p[0]);
+        triProjected.p[1] = matMultiplyVector(matProjection, tri.p[1]);
+        triProjected.p[2] = matMultiplyVector(matProjection, tri.p[2]);
 
-        draw_triangle(triProjected);
-
+        // Temp, translating to the centre of the screen (0,0)
+        vec3d vecTranslate(1.0f, 1.0f, 0.0f);
+        triTranslate.p[0] = triProjected.p[0] + vecTranslate;
+        triTranslate.p[1] = triProjected.p[1] + vecTranslate;
+        triTranslate.p[2] = triProjected.p[2] + vecTranslate;
+        
+        // Scale into view
+        vec3d vecScale(0.5f * (float)SCREEN_WIDTH, 0.5f * (float)SCREEN_HEIGHT, 1.0f);
+        triScale.p[0] = triTranslate.p[0] * vecScale;
+        triScale.p[1] = triTranslate.p[1] * vecScale;
+        triScale.p[2] = triTranslate.p[2] * vecScale;
+        draw_triangle(triScale);
     }
 }
 
@@ -101,14 +115,14 @@ void VEngine::draw_triangle(triangle& tri){
     #ifdef OPENCV
     cv::line(canvas, cv::Point(tri.p[0].x, tri.p[0].y),
                      cv::Point(tri.p[1].x, tri.p[1].y),
-                     cv::Scalar(255,0,0), 1);
+                     cv::Scalar(255,0,0), 2);
 
     cv::line(canvas, cv::Point(tri.p[2].x, tri.p[2].y),
                      cv::Point(tri.p[1].x, tri.p[1].y),
-                     cv::Scalar(0,255,0), 1);
+                     cv::Scalar(0,255,0), 2);
 
     cv::line(canvas, cv::Point(tri.p[0].x, tri.p[0].y),
                      cv::Point(tri.p[2].x, tri.p[2].y),
-                     cv::Scalar(0,0,255), 1);       
+                     cv::Scalar(0,0,255), 2);
     #endif
 }

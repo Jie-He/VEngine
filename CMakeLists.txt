@@ -78,17 +78,16 @@ elseif(PSVITA)
 
     # Library to link to (drop the -l prefix). This will mostly be stubs.
     target_link_libraries(${PROJECT_NAME}
-    stdc++
-    SceLibKernel_stub 
+    stdc++   
     vita2d 
     SceDisplay_stub
-    SceGxm_stub 
     SceSysmodule_stub
     SceCtrl_stub 
     SceTouch_stub  
     SceCommonDialog_stub 
     SceAudio_stub
     SceAppMgr_stub
+    SceGxm_stub
     freetype
     pthread
     png
@@ -107,10 +106,12 @@ elseif(PSVITA)
     FILE sce_sys/livearea/contents/bg.png sce_sys/livearea/contents/bg.png
     FILE sce_sys/livearea/contents/startup.png sce_sys/livearea/contents/startup.png
     FILE sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
+    
+    FILE res/Cube.obj res/Cube.obj
+    FILE res/Nier.obj res/Nier.obj
+
     )
 
-
-
 else()
-    message(WARNING "Add one of the following flag for a platorm build:\n -DOPENCV=1 : for OpenCV lib\n -DPSVITA=1 : for PSVITA build")
+    message(FATAL_ERROR "Add one of the following flag for a platorm build:\n -DOPENCV=1 : for OpenCV lib\n -DPSVITA=1 : for PSVITA build")
 endif()

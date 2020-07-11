@@ -1,10 +1,21 @@
-// A simple 3D Engine, mostly from online resources
+// ============================================================
+// A simple 3D Engine, mostly from online resources.
+// Code is primarily from JAVIDX9 
+
+// Main platform is for PS Vita console with VitaSDK library.
+// Due to Vita3K emulator not working very well, 
+// added OpenCV render to test algorithms before deploy to Vita
+
+// This code is mainly for personal learning purposes.
+// ============================================================
 #ifndef _VENGINE_
 #define _VENGINE_
 
 // VITA stuff
 #ifdef PSVITA
 #include <psp2/kernel/processmgr.h>
+#include <psp2/ctrl.h>
+#include <psp2/gxm.h> 
 // For drawing
 #include <vita2d.h>
 #endif 
@@ -54,9 +65,11 @@ class VEngine{
         // Control input
         bool bClockOn = false;
         #ifdef PSVITA
+        // Fonts to render with
         vita2d_font *font;
+        // Get store controller input
+        SceCtrlData   ctrl;
         #endif
-     
 
         // Resolution
         const int SCREEN_WIDTH = 960;
@@ -73,16 +86,14 @@ class VEngine{
 
         // Perspective stuff
         float fNear         = 0.1f;
-        float fFar          = 100.0f;
+        float fFar          = 1000.0f;
         float fFov          = 90.0f;
-        float fAspectRatio  = (float)(SCREEN_HEIGHT/SCREEN_WIDTH);
+        float fAspectRatio  = ((float)SCREEN_HEIGHT/(float)SCREEN_WIDTH);
         float fFovRad       = 1.0f / tanf( (fFov * 0.5f / 180.0f * 3.14159f) );
 
         mat4x4 matProjection;
-
         // Could pass: [RE]
         //  + world colour, 
-        //  + all the perspective stuff
         VEngine(){
             // do some default initialisation
             // Initialise 
@@ -110,19 +121,19 @@ class VEngine{
             // Call exit
             sceKernelExitProcess(0);
             #endif
-        }
+        };
 
         void start();   // set clock  on and call clock
         void stop();    // set clock off and call clock
         //void destory(); // call this last to release memory?
 
-        // Drawing stuff
-        void draw_triangle(triangle&);
-        void draw_mesh(mesh&);
-
         // Override this function to do whatever stuff
         virtual void onCreate(){};
         virtual void update(float fElapsedTime){};
+
+        // Drawing stuff
+        void draw_triangle(triangle&);
+        void draw_mesh(mesh&);
     private:
         // A while loop basically
         // maybe do some extra stuff like taking input

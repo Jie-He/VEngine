@@ -22,8 +22,8 @@ vec3d matMultiplyVector(mat4x4 &m, vec3d &i){
     v.w = i.x * m.m[0][3] + i.y * m.m[1][3] + i.z * m.m[2][3] + i.w * m.m[3][3];
     
     // for now [RE]
-    if (v.w)
-    {   v.x /= v.w; v.y /= v.w; v.z /= v.w;} 
+    if (v.w != 0)
+    {   v.x /= v.w; v.y /= v.w; v.z /= v.w; }
 
     return v;
 }
@@ -70,5 +70,14 @@ mat4x4 matMakeRotationZ(float fAngleRad)
     matrix.m[1][1] = cosf(fAngleRad);
     matrix.m[2][2] = 1.0f;
     matrix.m[3][3] = 1.0f;
+    return matrix;
+}
+
+mat4x4 matMultiplyMatrix(mat4x4 &m1, mat4x4 &m2)
+{
+    mat4x4 matrix;
+    for (int c = 0; c < 4; c++)
+        for (int r = 0; r < 4; r++)
+            matrix.m[r][c] = m1.m[r][0] * m2.m[0][c] + m1.m[r][1] * m2.m[1][c] + m1.m[r][2] * m2.m[2][c] + m1.m[r][3] * m2.m[3][c];
     return matrix;
 }

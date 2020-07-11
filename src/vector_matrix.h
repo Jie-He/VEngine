@@ -3,6 +3,9 @@
 
 #include <vector>
 #include <math.h>
+#include <iostream>
+#include <strstream>
+#include <fstream>
 
 // Quick 2D coord struct
 struct vec2d{
@@ -67,16 +70,16 @@ struct vec3d{
 
     // scalar multiplication
     vec3d operator*(const float k) const{
-        return vec3d(x * k, y * k, z * k, w);
-    }
-
-    vec3d operator/(const float k) const{
-        return vec3d(x / k, y / k, z / k, w);
+        return vec3d(x * k, y * k, z * k);
     }
 
     // pairwise mulitplication
     vec3d operator*(const vec3d& v) const{
         return vec3d( x * v.x, y * v.y, z * v.z);
+    }
+
+    vec3d operator/(const float k) const{
+        return vec3d(x / k, y / k, z / k);
     }
 
 	vec3d& operator+=(const vec3d& v){
@@ -101,6 +104,12 @@ struct mat4x4{
 
 struct triangle{
     vec3d p[3];
+    // Default constructor
+    //triangle(vec3d a = vec3d(), vec3d b = vec3d(), vec3d c = vec3d()){
+    //    p[0] = a;
+    //    p[1] = b;
+    //    p[2] = c;
+    //}
     // A base colour for this face?
 };
 
@@ -112,6 +121,40 @@ struct mesh{
     int nBaseB = 0;
 
     // Maybe a sprite later
+    bool LoadFromObjectFile(std::string sFilename){
+        std::ifstream f(sFilename);
+        if (!f.is_open())
+            return false;
+
+        // local cache of verts
+        std::vector<vec3d> verts;
+
+        while(!f.eof()){
+            char line[128];
+            f.getline(line, 128);
+
+            std::strstream s;
+            s << line;
+
+            char junk;
+
+            if(line[0] == 'v'){
+                vec3d v;
+                s >> junk >> v.x >> v.y >> v.z;
+                verts.push_back(v);
+            }
+
+            if( line[0] == 'f'){
+                int f[3];
+                s >> junk >> f[0] >> f[1] >> f[2];
+                //triangle trif = {verts[f[0]-1], verts[f[1]-1], verts[f[2]-1]};
+                //trif.setColour(0, 255, 255);
+                tris.push_back( {verts[f[0]-1], verts[f[1]-1], verts[f[2]-1]} );
+            }
+        }
+        return true;
+    }
+
 };
 
 // Operation on vector
@@ -119,10 +162,11 @@ vec3d vecCrossProduct(vec3d&, vec3d&);
 vec3d vecNormalise(vec3d&);
 
 // Operation on vector && matrix
-vec3d matMultiplyVector(mat4x4&, vec3d&);
+vec3d  matMultiplyVector(mat4x4&, vec3d&);
 mat4x4 matIdentity();
 mat4x4 matMakeRotationX(float);
 mat4x4 matMakeRotationY(float);
 mat4x4 matMakeRotationZ(float);
+mat4x4 matMultiplyMatrix(mat4x4&, mat4x4&);
 
 #endif//_VEC_MAT_
