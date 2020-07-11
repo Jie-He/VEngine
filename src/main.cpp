@@ -4,8 +4,7 @@ class mVEngine : public VEngine{
 
 	private:
 		mesh meshCube;
-
-		float fTheta = 0;
+		mat4x4 matRotZ, matRotX, matRotXZ;
 
 	void onCreate() override{
 		// Define the vertex for a cube
@@ -38,30 +37,21 @@ class mVEngine : public VEngine{
 		meshCube.LoadFromObjectFile("app0:/res/Cube.obj");
 		#endif
 
+		vec3d vecTrans(0.0f, 0.0f, 5.0f);
+		meshCube.ApplyTranslation(vecTrans);
 	}
 
 	void update (float fElapsedTime) override{
 		//vita2d_font_draw_text(font, 128, 55, WHITE, 11, "updateFunction");
-		fTheta += 1.0f * fElapsedTime;
-		mat4x4 matRotZ, matRotX, matRotXZ;
-		matRotX = matMakeRotationX(0.5 * fTheta);
-		matRotZ = matMakeRotationZ(      fTheta);
-		matRotXZ= matMultiplyMatrix(matRotZ, matRotX);
-
-		mesh cube = meshCube;
 		// rotate each face in mesh
-		for (int i = 0; i < cube.tris.size(); i++){
-			cube.tris[i].p[0] = matMultiplyVector(matRotXZ, cube.tris[i].p[0]);
-			cube.tris[i].p[1] = matMultiplyVector(matRotXZ, cube.tris[i].p[1]);
-			cube.tris[i].p[2] = matMultiplyVector(matRotXZ, cube.tris[i].p[2]);
+		matRotX = matMakeRotationX( 1.0f * fElapsedTime );
+		matRotZ = matMakeRotationZ( 2.0f * fElapsedTime );
+		matRotXZ= matMultiplyMatrix(matRotZ, matRotX);
+		
+		vec3d vecPivot(1.0f, 2.0f, 3.0f);
+		meshCube.ApplyRotation(matRotXZ, vecPivot);
 
-			// shift each face back in z direction
-			cube.tris[i].p[0].z += 6.0f;
-			cube.tris[i].p[1].z += 6.0f;
-			cube.tris[i].p[2].z += 6.0f;
-		}
-
-		draw_mesh(cube);
+		draw_mesh(meshCube);
 	}
 };
 

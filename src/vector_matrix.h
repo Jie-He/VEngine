@@ -102,6 +102,19 @@ struct mat4x4{
     float m[4][4] = {0};
 };
 
+// Operation on vector
+vec3d vecCrossProduct(vec3d&, vec3d&);
+vec3d vecNormalise(vec3d&);
+
+// Operation on vector && matrix
+vec3d  matMultiplyVector(mat4x4&, vec3d&);
+mat4x4 matIdentity();
+mat4x4 matMakeTranslate(vec3d&);
+mat4x4 matMakeRotationX(float);
+mat4x4 matMakeRotationY(float);
+mat4x4 matMakeRotationZ(float);
+mat4x4 matMultiplyMatrix(mat4x4&, mat4x4&);
+
 struct triangle{
     vec3d p[3];
     // Default constructor
@@ -119,6 +132,8 @@ struct mesh{
     int nBaseR = 0;
     int nBaseG = 0;
     int nBaseB = 0;
+    
+    vec3d origin;
 
     // Maybe a sprite later
     bool LoadFromObjectFile(std::string sFilename){
@@ -154,19 +169,37 @@ struct mesh{
         }
         return true;
     }
+    
+    // Around a pivot
+    void ApplyRotation(mat4x4& matRot, vec3d& vecPivot){
+        vec3d temp(0.0f, 0.0f, 0.0f);
+		temp = temp - vecPivot;
+		// Testing
+		mat4x4 matPivotP = matMakeTranslate( vecPivot );
+		mat4x4 matPivotS = matMakeTranslate( temp   );
+
+        // Weird. should be matP * matRot * matS
+		// But matS * matRot * matP works, maybe its bcs hot mat * vec is done
+		mat4x4 matRotPivot = matMultiplyMatrix(matRot,    matPivotP);
+			   matRotPivot = matMultiplyMatrix(matPivotS, matRotPivot);
+
+        for (size_t i = 0; i < tris.size(); i++){
+			tris[i].p[0] = matMultiplyVector(matRotPivot, tris[i].p[0]);
+			tris[i].p[1] = matMultiplyVector(matRotPivot, tris[i].p[1]);
+			tris[i].p[2] = matMultiplyVector(matRotPivot, tris[i].p[2]);
+	    }
+    }
+
+    void ApplyTranslation(vec3d& vecTrans){
+        // Update the origin too 
+        origin = origin + vecTrans;
+        for (size_t i = 0; i < tris.size(); i++){
+			tris[i].p[0] = tris[i].p[0] + vecTrans;
+			tris[i].p[1] = tris[i].p[1] + vecTrans;
+			tris[i].p[2] = tris[i].p[2] + vecTrans;
+	    }
+    }
 
 };
-
-// Operation on vector
-vec3d vecCrossProduct(vec3d&, vec3d&);
-vec3d vecNormalise(vec3d&);
-
-// Operation on vector && matrix
-vec3d  matMultiplyVector(mat4x4&, vec3d&);
-mat4x4 matIdentity();
-mat4x4 matMakeRotationX(float);
-mat4x4 matMakeRotationY(float);
-mat4x4 matMakeRotationZ(float);
-mat4x4 matMultiplyMatrix(mat4x4&, mat4x4&);
 
 #endif//_VEC_MAT_

@@ -36,6 +36,14 @@ mat4x4 matIdentity(){
     return v;
 }
 
+mat4x4 matMakeTranslate(vec3d& vecTrans){
+    mat4x4 matrix = matIdentity();
+    matrix.m[3][0]  = vecTrans.x;
+    matrix.m[3][1]  = vecTrans.y;
+    matrix.m[3][2]  = vecTrans.z;
+    return matrix;
+}
+
 mat4x4 matMakeRotationX(float fAngleRad)
 {
     mat4x4 matrix;
