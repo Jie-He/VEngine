@@ -15,7 +15,6 @@
 #ifdef PSVITA
 #include <psp2/kernel/processmgr.h>
 #include <psp2/ctrl.h>
-#include <psp2/gxm.h> 
 // For drawing
 #include <vita2d.h>
 #endif 
@@ -29,8 +28,6 @@
 #endif
 
 // Some default C++ stuff
-#include <stdio.h>
-#include <stdlib.h>
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -41,7 +38,6 @@
 
 // For timer
 #include <chrono>
-#include <ctime>
 
 // For some quick maths
 #include <math.h>
@@ -105,7 +101,7 @@ class VEngine{
             // Initialise 
             #ifdef PSVITA
             vita2d_init();
-            vita2d_set_clear_color(AMBER);
+            vita2d_set_clear_color(BLACK);
             font = vita2d_load_font_mem(basicfont, basicfont_size);
             #endif
 
@@ -124,11 +120,8 @@ class VEngine{
         ~VEngine(){
             // Release drawing stuff
             #ifdef PSVITA
-            vita2d_init();
+            vita2d_fini();
             vita2d_free_font(font);
-
-            // Call exit
-            sceKernelExitProcess(0);
             #endif
         };
 

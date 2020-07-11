@@ -41,6 +41,10 @@ void VEngine::ve_clock(){
 
         // Get controller input
         sceCtrlPeekBufferPositive(0, &ctrl, 1);
+
+        // Temp break program button ( R Trigger )
+        if (ctrl.buttons & SCE_CTRL_RTRIGGER) break;	
+
         #endif
 
         // OPENCV CLEAR SCREEN
@@ -66,7 +70,7 @@ void VEngine::ve_clock(){
                     0.5, CV_RGB(255, 255, 255), 1);
         // OPENCV DRAW SCREEN && WAIT
         imshow("VEngine", canvas);
-        keypress = cv::waitKey(10);
+        keypress = cv::waitKey(1);
         #endif
     }
 
@@ -123,7 +127,7 @@ void VEngine::draw_mesh(mesh& mh){
 
     // sort the faces by distance, :. Painter's Method
     // Change to Depth buffer later
-    sort(vecTrianglesToRaster.begin(), vecTrianglesToRaster.end(),
+    std::sort(vecTrianglesToRaster.begin(), vecTrianglesToRaster.end(),
          [](triangle &t1, triangle &t2){
              float z1 = (t1.p[0].z + t1.p[1].z + t1.p[2].z) / 3.0f;
              float z2 = (t2.p[0].z + t2.p[1].z + t2.p[2].z) / 3.0f;
@@ -133,7 +137,7 @@ void VEngine::draw_mesh(mesh& mh){
 
     for (auto tri : vecTrianglesToRaster){
         fill_triangle(tri, tri.fGrayScale, tri.fGrayScale, tri.fGrayScale);
-        //draw_triangle(tri);
+        draw_triangle(tri);
     }
 }
 

@@ -8,8 +8,8 @@ class mVEngine : public VEngine{
 	void onCreate() override{
 		
 		#ifdef OPENCV
-		meshCube.LoadFromObjectFile("../res/Nier.obj");
-		std::cout << "Loaded mode!" << std::endl;
+		meshCube.LoadFromObjectFile("../res/Cube.obj");
+		std::cout << "Mode loaded!" << std::endl;
  		#endif
 
 		#ifdef PSVITA
@@ -23,9 +23,10 @@ class mVEngine : public VEngine{
 	void update (float fElapsedTime) override{
 		//vita2d_font_draw_text(font, 128, 55, WHITE, 11, "updateFunction");
 		// rotate each face in mesh
-		mat4x4 matRotX = matMakeRotationX( 1.0f * fElapsedTime );
-		mat4x4 matRotY = matMakeRotationY( 0.5f * fElapsedTime );
-		mat4x4 matRotZ = matMakeRotationZ( -1.5f * fElapsedTime );
+		float rad = ((3.14159f / 4.0f ) * fElapsedTime);
+		mat4x4 matRotX = matMakeRotationX( rad );
+		mat4x4 matRotY = matMakeRotationY( rad * 2.0f );
+		mat4x4 matRotZ = matMakeRotationZ( rad * 3.0f );
 		mat4x4 matRot  = matMultiplyMatrix(matRotY, matRotX);
 			   matRot  = matMultiplyMatrix(matRotZ, matRot );
 		
@@ -44,27 +45,31 @@ int main(int argc, char *argv[]) {
 	mVEngine mve;
 	mve.start();
 
+	#ifdef PSVITA
+	// Call exit
+	sceKernelExitProcess(0);
+	#endif
+
     return 0;
 }
-
-// Define the vertex for a cube, could keep it for debugging.
-		/**
-		meshCube.tris = {
-							{vec3d(0.0f, 0.0f, 0.0f),	vec3d(0.0f, 1.0f, 0.0f),	vec3d(1.0f, 1.0f, 0.0f)},
-							{vec3d(0.0f, 0.0f, 0.0f),	vec3d(1.0f, 1.0f, 0.0f),	vec3d(1.0f, 0.0f, 0.0f)},
-							
-							{vec3d(1.0f, 0.0f, 0.0f),	vec3d(1.0f, 1.0f, 0.0f),	vec3d(1.0f, 1.0f, 1.0f)},
-							{vec3d(1.0f, 0.0f, 0.0f),	vec3d(1.0f, 1.0f, 1.0f),	vec3d(1.0f, 0.0f, 1.0f)},
-							
-							{vec3d(1.0f, 0.0f, 1.0f),	vec3d(1.0f, 1.0f, 1.0f),	vec3d(0.0f, 1.0f, 1.0f)},
-							{vec3d(1.0f, 0.0f, 1.0f),	vec3d(0.0f, 1.0f, 1.0f),	vec3d(0.0f, 0.0f, 1.0f)},
-							
-							{vec3d(0.0f, 0.0f, 1.0f),	vec3d(0.0f, 1.0f, 1.0f),	vec3d(0.0f, 1.0f, 0.0f)},
-							{vec3d(0.0f, 0.0f, 1.0f),	vec3d(0.0f, 1.0f, 0.0f),	vec3d(0.0f, 0.0f, 0.0f)},
-							
-							{vec3d(0.0f, 1.0f, 0.0f),	vec3d(0.0f, 1.0f, 1.0f),	vec3d(1.0f, 1.0f, 1.0f)},
-							{vec3d(0.0f, 1.0f, 0.0f),	vec3d(1.0f, 1.0f, 1.0f),	vec3d(1.0f, 1.0f, 0.0f)},
-							
-							{vec3d(1.0f, 0.0f, 1.0f),	vec3d(0.0f, 0.0f, 1.0f),	vec3d(0.0f, 0.0f, 0.0f)},
-							{vec3d(1.0f, 0.0f, 1.0f),	vec3d(0.0f, 0.0f, 0.0f),	vec3d(1.0f, 0.0f, 0.0f)}
-						}; **/
+		
+	// Define the vertex for a cube, could keep it for debugging.
+	/**meshCube.tris = {
+						triangle(vec3d(0.0f, 0.0f, 0.0f),	vec3d(0.0f, 1.0f, 0.0f),	vec3d(1.0f, 1.0f, 0.0f), 255.0f),
+						triangle(vec3d(0.0f, 0.0f, 0.0f),	vec3d(1.0f, 1.0f, 0.0f),	vec3d(1.0f, 0.0f, 0.0f), 255.0f),
+						
+						triangle(vec3d(1.0f, 0.0f, 0.0f),	vec3d(1.0f, 1.0f, 0.0f),	vec3d(1.0f, 1.0f, 1.0f), 255.0f),
+						triangle(vec3d(1.0f, 0.0f, 0.0f),	vec3d(1.0f, 1.0f, 1.0f),	vec3d(1.0f, 0.0f, 1.0f), 255.0f),
+						
+						triangle(vec3d(1.0f, 0.0f, 1.0f),	vec3d(1.0f, 1.0f, 1.0f),	vec3d(0.0f, 1.0f, 1.0f), 255.0f),
+						triangle(vec3d(1.0f, 0.0f, 1.0f),	vec3d(0.0f, 1.0f, 1.0f),	vec3d(0.0f, 0.0f, 1.0f), 255.0f),
+						
+						triangle(vec3d(0.0f, 0.0f, 1.0f),	vec3d(0.0f, 1.0f, 1.0f),	vec3d(0.0f, 1.0f, 0.0f), 255.0f),
+						triangle(vec3d(0.0f, 0.0f, 1.0f),	vec3d(0.0f, 1.0f, 0.0f),	vec3d(0.0f, 0.0f, 0.0f), 255.0f),
+						
+						triangle(vec3d(0.0f, 1.0f, 0.0f),	vec3d(0.0f, 1.0f, 1.0f),	vec3d(1.0f, 1.0f, 1.0f), 255.0f),
+						triangle(vec3d(0.0f, 1.0f, 0.0f),	vec3d(1.0f, 1.0f, 1.0f),	vec3d(1.0f, 1.0f, 0.0f), 255.0f),
+						
+						triangle(vec3d(1.0f, 0.0f, 1.0f),	vec3d(0.0f, 0.0f, 1.0f),	vec3d(0.0f, 0.0f, 0.0f), 255.0f),
+						triangle(vec3d(1.0f, 0.0f, 1.0f),	vec3d(0.0f, 0.0f, 0.0f),	vec3d(1.0f, 0.0f, 0.0f), 255.0f)
+					}; **/

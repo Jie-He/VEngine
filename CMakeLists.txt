@@ -43,7 +43,7 @@ elseif(PSVITA)
     set(VITA_APP_NAME "VEngine - Dev")
     # Unique ID must be exactly 9 characters. Recommended: XXXXYYYYY where X =
     # unique string of developer and Y = a unique number for this app
-    set(VITA_TITLEID  "NEKO123456")
+    set(VITA_TITLEID  "NEKO00160")
     # Optional version string to show in LiveArea's more info screen
     set(VITA_VERSION  "01.00")
 
@@ -78,21 +78,19 @@ elseif(PSVITA)
 
     # Library to link to (drop the -l prefix). This will mostly be stubs.
     target_link_libraries(${PROJECT_NAME}
-    stdc++   
-    vita2d 
-    SceDisplay_stub
-    SceSysmodule_stub
-    SceCtrl_stub 
-    SceTouch_stub  
-    SceCommonDialog_stub 
-    SceAudio_stub
-    SceAppMgr_stub
-    SceGxm_stub
-    freetype
-    pthread
-    png
-    z
-    m
+        stdc++
+        SceLibKernel_stub 
+        SceCtrl_stub
+        vita2d
+        SceGxm_stub
+        SceAppMgr_stub
+        SceSysmodule_stub
+        SceCommonDialog_stub 
+        SceDisplay_stub  
+        freetype
+        png
+        z
+        m
     )
 
     ## Create Vita files
@@ -108,7 +106,7 @@ elseif(PSVITA)
     FILE sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
     
     FILE res/Cube.obj res/Cube.obj
-    FILE res/Nier.obj res/Nier.obj
+    #FILE res/Nier.obj res/Nier.obj
 
     )
 
