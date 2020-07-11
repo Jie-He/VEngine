@@ -45,6 +45,8 @@
 
 // For some quick maths
 #include <math.h>
+// [TODO]
+#include <algorithm>
 
 // Define some colours
 #ifdef PSVITA
@@ -76,6 +78,10 @@ class VEngine{
         const int SCREEN_HEIGHT= 544;
 
         // World information
+        // Camera
+        vec3d vecCamera;
+        // Lighting
+        vec3d vecLight;
         // OPENCV: canvas, color, input
         #ifdef OPENCV
         cv::Mat canvas          = cv::Mat::zeros(SCREEN_HEIGHT, SCREEN_WIDTH, CV_8UC3);
@@ -110,6 +116,9 @@ class VEngine{
             matProjection.m[3][2] = (-fFar * fNear) / (fFar - fNear);
             matProjection.m[2][3] = 1.0f;
             matProjection.m[3][3] = 0.0f;
+
+            // Set light location
+            vecLight = vec3d(0.0f, 0.0f, -1.0f);
         };
         // do it later
         ~VEngine(){
@@ -133,6 +142,7 @@ class VEngine{
 
         // Drawing stuff
         void draw_triangle(triangle&);
+        void fill_triangle(triangle&, int, int, int);
         void draw_mesh(mesh&);
     private:
         // A while loop basically

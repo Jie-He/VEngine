@@ -4,10 +4,50 @@ class mVEngine : public VEngine{
 
 	private:
 		mesh meshCube;
-		mat4x4 matRotZ, matRotX, matRotXZ;
 
 	void onCreate() override{
-		// Define the vertex for a cube
+		
+		#ifdef OPENCV
+		meshCube.LoadFromObjectFile("../res/Nier.obj");
+		std::cout << "Loaded mode!" << std::endl;
+ 		#endif
+
+		#ifdef PSVITA
+		meshCube.LoadFromObjectFile("app0:/res/Cube.obj");
+		#endif
+
+		vec3d vecTrans(0.0f, 0.0f, 5.0f);
+		meshCube.ApplyTranslation(vecTrans);
+	}
+
+	void update (float fElapsedTime) override{
+		//vita2d_font_draw_text(font, 128, 55, WHITE, 11, "updateFunction");
+		// rotate each face in mesh
+		mat4x4 matRotX = matMakeRotationX( 1.0f * fElapsedTime );
+		mat4x4 matRotY = matMakeRotationY( 0.5f * fElapsedTime );
+		mat4x4 matRotZ = matMakeRotationZ( -1.5f * fElapsedTime );
+		mat4x4 matRot  = matMultiplyMatrix(matRotY, matRotX);
+			   matRot  = matMultiplyMatrix(matRotZ, matRot );
+		
+		meshCube.ApplyRotation(matRot, meshCube.origin);
+
+		draw_mesh(meshCube);
+	}
+};
+
+int main(int argc, char *argv[]) {
+
+	#ifdef OPENCV
+		std::cout << "OPENCV MODE" << std::endl;
+	#endif
+
+	mVEngine mve;
+	mve.start();
+
+    return 0;
+}
+
+// Define the vertex for a cube, could keep it for debugging.
 		/**
 		meshCube.tris = {
 							{vec3d(0.0f, 0.0f, 0.0f),	vec3d(0.0f, 1.0f, 0.0f),	vec3d(1.0f, 1.0f, 0.0f)},
@@ -28,41 +68,3 @@ class mVEngine : public VEngine{
 							{vec3d(1.0f, 0.0f, 1.0f),	vec3d(0.0f, 0.0f, 1.0f),	vec3d(0.0f, 0.0f, 0.0f)},
 							{vec3d(1.0f, 0.0f, 1.0f),	vec3d(0.0f, 0.0f, 0.0f),	vec3d(1.0f, 0.0f, 0.0f)}
 						}; **/
-		#ifdef OPENCV
-		meshCube.LoadFromObjectFile("../res/Cube.obj");
-		std::cout << "Loaded mode!" << std::endl;
- 		#endif
-
-		#ifdef PSVITA
-		meshCube.LoadFromObjectFile("app0:/res/Cube.obj");
-		#endif
-
-		vec3d vecTrans(0.0f, 0.0f, 5.0f);
-		meshCube.ApplyTranslation(vecTrans);
-	}
-
-	void update (float fElapsedTime) override{
-		//vita2d_font_draw_text(font, 128, 55, WHITE, 11, "updateFunction");
-		// rotate each face in mesh
-		matRotX = matMakeRotationX( 1.0f * fElapsedTime );
-		matRotZ = matMakeRotationZ( 2.0f * fElapsedTime );
-		matRotXZ= matMultiplyMatrix(matRotZ, matRotX);
-		
-		vec3d vecPivot(1.0f, 2.0f, 3.0f);
-		meshCube.ApplyRotation(matRotXZ, vecPivot);
-
-		draw_mesh(meshCube);
-	}
-};
-
-int main(int argc, char *argv[]) {
-
-	#ifdef OPENCV
-		std::cout << "OPENCV MODE" << std::endl;
-	#endif
-
-	mVEngine mve;
-	mve.start();
-
-    return 0;
-}

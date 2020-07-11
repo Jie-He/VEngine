@@ -113,16 +113,21 @@ mat4x4 matMakeTranslate(vec3d&);
 mat4x4 matMakeRotationX(float);
 mat4x4 matMakeRotationY(float);
 mat4x4 matMakeRotationZ(float);
-mat4x4 matMultiplyMatrix(mat4x4&, mat4x4&);
+mat4x4 matMultiplyMatrix(mat4x4&, mat4x4&) ;
 
 struct triangle{
     vec3d p[3];
+    float fGrayScale = 255.0f;
     // Default constructor
-    //triangle(vec3d a = vec3d(), vec3d b = vec3d(), vec3d c = vec3d()){
-    //    p[0] = a;
-    //    p[1] = b;
-    //    p[2] = c;
-    //}
+    triangle(){
+        fGrayScale=255.0f;
+    }
+    triangle(vec3d a, vec3d b, vec3d c, float fG=255.0f){
+        p[0] = a;
+        p[1] = b;
+        p[2] = c;
+        fGrayScale = fG;
+    }
     // A base colour for this face?
 };
 
@@ -162,9 +167,7 @@ struct mesh{
             if( line[0] == 'f'){
                 int f[3];
                 s >> junk >> f[0] >> f[1] >> f[2];
-                //triangle trif = {verts[f[0]-1], verts[f[1]-1], verts[f[2]-1]};
-                //trif.setColour(0, 255, 255);
-                tris.push_back( {verts[f[0]-1], verts[f[1]-1], verts[f[2]-1]} );
+                tris.push_back( triangle(verts[f[0]-1], verts[f[1]-1], verts[f[2]-1], 255.0f) );
             }
         }
         return true;

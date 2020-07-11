@@ -66,7 +66,7 @@ void VEngine::ve_clock(){
                     0.5, CV_RGB(255, 255, 255), 1);
         // OPENCV DRAW SCREEN && WAIT
         imshow("VEngine", canvas);
-        keypress = cv::waitKey(1);
+        keypress = cv::waitKey(10);
         #endif
     }
 
@@ -74,25 +74,66 @@ void VEngine::ve_clock(){
 
 // Draw a single mesh [RE]
 void VEngine::draw_mesh(mesh& mh){
-    for (auto tri : mh.tris){
-        triangle triProjected, triTranslate, triScale;
-        // Project the vec3d with the projection matrix
-        triProjected.p[0] = matMultiplyVector(matProjection, tri.p[0]);
-        triProjected.p[1] = matMultiplyVector(matProjection, tri.p[1]);
-        triProjected.p[2] = matMultiplyVector(matProjection, tri.p[2]);
 
-        // Temp, translating to the centre of the screen (0,0)
-        vec3d vecTranslate(1.0f, 1.0f, 0.0f);
-        triTranslate.p[0] = triProjected.p[0] + vecTranslate;
-        triTranslate.p[1] = triProjected.p[1] + vecTranslate;
-        triTranslate.p[2] = triProjected.p[2] + vecTranslate;
+    std::vector<triangle> vecTrianglesToRaster;
+
+    for (auto tri : mh.tris){
+        // Normal calculation
+        vec3d normal, line1, line2;
+        // Get lines from either side of triangle
+        line1 = tri.p[1] - tri.p[0];
+        line2 = tri.p[2] - tri.p[0];
         
-        // Scale into view
-        vec3d vecScale(0.5f * (float)SCREEN_WIDTH, 0.5f * (float)SCREEN_HEIGHT, 1.0f);
-        triScale.p[0] = triTranslate.p[0] * vecScale;
-        triScale.p[1] = triTranslate.p[1] * vecScale;
-        triScale.p[2] = triTranslate.p[2] * vecScale;
-        draw_triangle(triScale);
+        // Take crossproduct of lines to get normal to triangle surface
+        normal = vecCrossProduct(line1, line2);
+        // Normalise a normal
+        normal = vecNormalise(normal);
+
+        // Only draw it if its visible from view
+        vec3d temp = tri.p[0] - vecCamera;
+        if (normal.dot(temp) < 0){
+            triangle triProjected, triTranslate, triScale;
+            // Project the vec3d with the projection matrix
+            triProjected.p[0] = matMultiplyVector(matProjection, tri.p[0]);
+            triProjected.p[1] = matMultiplyVector(matProjection, tri.p[1]);
+            triProjected.p[2] = matMultiplyVector(matProjection, tri.p[2]);
+
+            // Temp, translating to the centre of the screen (0,0)
+            vec3d vecTranslate(1.0f, 1.0f, 0.0f);
+            triTranslate.p[0] = triProjected.p[0] + vecTranslate;
+            triTranslate.p[1] = triProjected.p[1] + vecTranslate;
+            triTranslate.p[2] = triProjected.p[2] + vecTranslate;
+
+            // Scale into view
+            vec3d vecScale(0.5f * (float)SCREEN_WIDTH, 0.5f * (float)SCREEN_HEIGHT, 1.0f);
+            triScale.p[0] = triTranslate.p[0] * vecScale;
+            triScale.p[1] = triTranslate.p[1] * vecScale;
+            triScale.p[2] = triTranslate.p[2] * vecScale;
+
+            // Simple light shading
+            vecLight = vecNormalise(vecLight);
+            float ls = vecLight.dot(normal) * 255;
+            triScale.fGrayScale = ls;
+            
+            vecTrianglesToRaster.push_back(triScale);
+            //fill_triangle(triScale, ls, ls, ls);
+            //draw_triangle(triScale);
+        }
+    }
+
+    // sort the faces by distance, :. Painter's Method
+    // Change to Depth buffer later
+    sort(vecTrianglesToRaster.begin(), vecTrianglesToRaster.end(),
+         [](triangle &t1, triangle &t2){
+             float z1 = (t1.p[0].z + t1.p[1].z + t1.p[2].z) / 3.0f;
+             float z2 = (t2.p[0].z + t2.p[1].z + t2.p[2].z) / 3.0f;
+             
+             return z1 > z2;
+         });
+
+    for (auto tri : vecTrianglesToRaster){
+        fill_triangle(tri, tri.fGrayScale, tri.fGrayScale, tri.fGrayScale);
+        //draw_triangle(tri);
     }
 }
 
@@ -124,5 +165,18 @@ void VEngine::draw_triangle(triangle& tri){
     cv::line(canvas, cv::Point(tri.p[0].x, tri.p[0].y),
                      cv::Point(tri.p[2].x, tri.p[2].y),
                      cv::Scalar(0,0,255), 2);
+    #endif
+}
+
+void VEngine::fill_triangle(triangle& tri, int R=255, int G=255, int B=255){
+    #ifdef PSVITA
+    // [TODO]
+    #endif
+
+    #ifdef OPENCV
+    std::vector<cv::Point> pts = {  cv::Point(tri.p[0].x, tri.p[0].y),
+                                    cv::Point(tri.p[1].x, tri.p[1].y),
+                                    cv::Point(tri.p[2].x, tri.p[2].y)};
+    cv::fillPoly(canvas, pts, cv::Scalar(B, G, R));   
     #endif
 }
