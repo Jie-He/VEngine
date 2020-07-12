@@ -99,7 +99,7 @@ class mVEngine : public VEngine{
 			
 			// Up down rotation (inverted)
 			if (abs(ctrl.ly - 128) > 50){
-				mat4x4 matPitchRot = matMakeRotationX( -ctrl.lx / 100.0f * fElapsedTime );
+				mat4x4 matPitchRot = matMakeRotationX( -ctrl.ly / 100.0f * fElapsedTime );
 				camMain.ApplyRotation(matPitchRot);
 			}
 		#endif
