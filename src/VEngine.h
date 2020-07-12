@@ -58,6 +58,51 @@ extern unsigned int basicfont_size;
 extern unsigned char basicfont[];
 #endif
 
+struct Camera{
+    // Location 
+    vec3d location = vec3d();
+    vec3d lookAtDir= vec3d(0.0f, 0.0f, 1.0f);
+    vec3d vecUp    = vec3d(0.0f, 1.0f, 0.0f);
+    vec3d vecRight = vec3d(1.0f, 0.0f, 0.0f);
+    // [TODO]: Add constructor
+
+    // Viewing Matrix
+    mat4x4 matCamera;
+
+    void pointAt(vec3d& target){
+        // Need to update the look at things
+        
+        // Calc new forward direction
+        lookAtDir = target - location;
+        lookAtDir = vecNormalise(lookAtDir);
+
+        // Calc new up direction
+        vec3d temp = vecUp;
+        vecUp = lookAtDir * (vecUp.dot(lookAtDir));
+        vecUp = temp - vecUp;
+        vecUp = vecNormalise(vecUp);
+
+        // Cross product for new right direction
+        vecRight = vecCrossProduct(vecUp, lookAtDir);
+
+        // Construct new matrix
+        matCamera = matMakeTranslate(location);
+        matCamera.m[0][0] = vecRight.x;	    matCamera.m[0][1] = vecRight.y;	    matCamera.m[0][2] = vecRight.z;	
+        matCamera.m[1][0] = vecUp.x;		matCamera.m[1][1] = vecUp.y;		matCamera.m[1][2] = vecUp.z;		
+        matCamera.m[2][0] = lookAtDir.x;	matCamera.m[2][1] = lookAtDir.y;	matCamera.m[2][2] = lookAtDir.z;
+        
+        //matCamera= matPointAt(location, target, vecUp);
+		matCamera= matQuickInverse(matCamera);
+    }
+
+    void ApplyRotation(mat4x4& m){
+        // update the 3 vectors
+        lookAtDir = matMultiplyVector(m, lookAtDir);
+        vecUp     = matMultiplyVector(m, vecUp);
+        vecRight  = matMultiplyVector(m, vecRight);
+    }
+};
+
 class VEngine{
     public:
         // Control input
@@ -75,7 +120,7 @@ class VEngine{
 
         // World information
         // Camera
-        vec3d vecCamera;
+        Camera camMain;
         // Lighting
         vec3d vecLight;
         // OPENCV: canvas, color, input
@@ -114,7 +159,7 @@ class VEngine{
             matProjection.m[3][3] = 0.0f;
 
             // Set light location
-            vecLight = vec3d(0.0f, 0.0f, -1.0f);
+            vecLight = vec3d(0.0f, -10.0f, -10.0f);
         };
         // do it later
         ~VEngine(){
@@ -136,7 +181,7 @@ class VEngine{
         // Drawing stuff
         void draw_triangle(triangle&);
         void fill_triangle(triangle&, int, int, int);
-        void draw_mesh(mesh&);
+        void draw_scene(std::vector<mesh>&);
     private:
         // A while loop basically
         // maybe do some extra stuff like taking input

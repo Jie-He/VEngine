@@ -36,20 +36,19 @@ void VEngine::ve_clock(){
 
         // Clear screen 
         #ifdef PSVITA       
-        vita2d_start_drawing();
-		vita2d_clear_screen();
+            vita2d_start_drawing();
+            vita2d_clear_screen();
 
-        // Get controller input
-        sceCtrlPeekBufferPositive(0, &ctrl, 1);
+            // Get controller input
+            sceCtrlPeekBufferPositive(0, &ctrl, 1);
 
-        // Temp break program button ( R Trigger )
-        if (ctrl.buttons & SCE_CTRL_RTRIGGER) break;	
-
+            // Temp break program button ( R Trigger )
+            if (ctrl.buttons & SCE_CTRL_RTRIGGER) break;	
         #endif
 
         // OPENCV CLEAR SCREEN
         #ifdef OPENCV
-        canvas = world_colour;
+            canvas = world_colour;
         #endif
         
         // Call update function
@@ -58,70 +57,78 @@ void VEngine::ve_clock(){
         // FPS info
         sprintf(buff, "FPS: %6.3f", fFPS);
         #ifdef PSVITA
-        vita2d_font_draw_text(font, 20, 20, WHITE, 11, buff);
-        vita2d_end_drawing();
-		vita2d_swap_buffers();
+            vita2d_font_draw_text(font, 20, 20, WHITE, 11, buff);
+            vita2d_end_drawing();
+            vita2d_swap_buffers();
         #endif
 
         // OPENCV DRAW FPS INFO
         #ifdef OPENCV
-        cv::putText(canvas, buff, cv::Point(10, 20),
-                    cv::FONT_HERSHEY_DUPLEX,
-                    0.5, CV_RGB(255, 255, 255), 1);
-        // OPENCV DRAW SCREEN && WAIT
-        imshow("VEngine", canvas);
-        keypress = cv::waitKey(1);
+            cv::putText(canvas, buff, cv::Point(10, 20),
+                        cv::FONT_HERSHEY_DUPLEX,
+                        0.5, CV_RGB(255, 255, 255), 1);
+            // OPENCV DRAW SCREEN && WAIT
+            imshow("VEngine", canvas);
+            keypress = cv::waitKey(1);
+            // Exit when esc key pressed
+            if (keypress == 27) break;
         #endif
     }
 
 }
 
 // Draw a single mesh [RE]
-void VEngine::draw_mesh(mesh& mh){
-
+void VEngine::draw_scene(std::vector<mesh>& sceMesh){
     std::vector<triangle> vecTrianglesToRaster;
 
-    for (auto tri : mh.tris){
-        // Normal calculation
-        vec3d normal, line1, line2;
-        // Get lines from either side of triangle
-        line1 = tri.p[1] - tri.p[0];
-        line2 = tri.p[2] - tri.p[0];
-        
-        // Take crossproduct of lines to get normal to triangle surface
-        normal = vecCrossProduct(line1, line2);
-        // Normalise a normal
-        normal = vecNormalise(normal);
-
-        // Only draw it if its visible from view
-        vec3d temp = tri.p[0] - vecCamera;
-        if (normal.dot(temp) < 0){
-            triangle triProjected, triTranslate, triScale;
-            // Project the vec3d with the projection matrix
-            triProjected.p[0] = matMultiplyVector(matProjection, tri.p[0]);
-            triProjected.p[1] = matMultiplyVector(matProjection, tri.p[1]);
-            triProjected.p[2] = matMultiplyVector(matProjection, tri.p[2]);
-
-            // Temp, translating to the centre of the screen (0,0)
-            vec3d vecTranslate(1.0f, 1.0f, 0.0f);
-            triTranslate.p[0] = triProjected.p[0] + vecTranslate;
-            triTranslate.p[1] = triProjected.p[1] + vecTranslate;
-            triTranslate.p[2] = triProjected.p[2] + vecTranslate;
-
-            // Scale into view
-            vec3d vecScale(0.5f * (float)SCREEN_WIDTH, 0.5f * (float)SCREEN_HEIGHT, 1.0f);
-            triScale.p[0] = triTranslate.p[0] * vecScale;
-            triScale.p[1] = triTranslate.p[1] * vecScale;
-            triScale.p[2] = triTranslate.p[2] * vecScale;
-
-            // Simple light shading
-            vecLight = vecNormalise(vecLight);
-            float ls = vecLight.dot(normal) * 255;
-            triScale.fGrayScale = ls;
+    for (mesh mh : sceMesh){
+        for (auto tri : mh.tris){
+            // Normal calculation
+            vec3d normal, line1, line2;
+            // Get lines from either side of triangle
+            line1 = tri.p[1] - tri.p[0];
+            line2 = tri.p[2] - tri.p[0];
             
-            vecTrianglesToRaster.push_back(triScale);
-            //fill_triangle(triScale, ls, ls, ls);
-            //draw_triangle(triScale);
+            // Take crossproduct of lines to get normal to triangle surface
+            normal = vecCrossProduct(line1, line2);
+            // Normalise a normal
+            normal = vecNormalise(normal);
+
+            // Only draw it if its visible from view
+            vec3d temp = tri.p[0] - camMain.location;
+            if (normal.dot(temp) < 0){
+                triangle triProjected, triTranslate, triScale;
+                // Project to camera view first
+                triProjected.p[0] = matMultiplyVector(camMain.matCamera, tri.p[0]);
+                triProjected.p[1] = matMultiplyVector(camMain.matCamera, tri.p[1]);
+                triProjected.p[2] = matMultiplyVector(camMain.matCamera, tri.p[2]);
+
+                // Project the vec3d with the projection matrix
+                triProjected.p[0] = matMultiplyVector(matProjection, triProjected.p[0]);
+                triProjected.p[1] = matMultiplyVector(matProjection, triProjected.p[1]);
+                triProjected.p[2] = matMultiplyVector(matProjection, triProjected.p[2]);
+
+                // Temp, translating to the centre of the screen (0,0)
+                vec3d vecTranslate(1.0f, 1.0f, 0.0f);
+                triTranslate.p[0] = triProjected.p[0] + vecTranslate;
+                triTranslate.p[1] = triProjected.p[1] + vecTranslate;
+                triTranslate.p[2] = triProjected.p[2] + vecTranslate;
+
+                // Scale into view
+                vec3d vecScale(0.5f * (float)SCREEN_WIDTH, 0.5f * (float)SCREEN_HEIGHT, 1.0f);
+                triScale.p[0] = triTranslate.p[0] * vecScale;
+                triScale.p[1] = triTranslate.p[1] * vecScale;
+                triScale.p[2] = triTranslate.p[2] * vecScale;
+
+                // Simple light shading
+                vecLight = vecNormalise(vecLight);
+                float ls = vecLight.dot(normal) * 255;
+                triScale.fGrayScale = ls;
+                
+                vecTrianglesToRaster.push_back(triScale);
+                //fill_triangle(triScale, ls, ls, ls);
+                //draw_triangle(triScale);
+            }
         }
     }
 

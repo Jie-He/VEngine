@@ -89,6 +89,13 @@ struct vec3d{
 		return *this;
 	}
 
+    vec3d& operator-=(const vec3d& v){
+		x -= v.x;
+		y -= v.y;
+        z -= v.z;
+		return *this;
+	}
+
     float dot(const vec3d& v){
         return x * v.x + y * v.y + z * v.z;
     }
@@ -110,10 +117,12 @@ vec3d vecNormalise(vec3d&);
 vec3d  matMultiplyVector(mat4x4&, vec3d&);
 mat4x4 matIdentity();
 mat4x4 matMakeTranslate(vec3d&);
+mat4x4 matPointAt(vec3d &, vec3d&, vec3d&);
+mat4x4 matQuickInverse(mat4x4&);
 mat4x4 matMakeRotationX(float);
 mat4x4 matMakeRotationY(float);
 mat4x4 matMakeRotationZ(float);
-mat4x4 matMultiplyMatrix(mat4x4&, mat4x4&) ;
+mat4x4 matMultiplyMatrix(mat4x4&, mat4x4&);
 
 struct triangle{
     vec3d p[3];

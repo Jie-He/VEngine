@@ -44,6 +44,40 @@ mat4x4 matMakeTranslate(vec3d& vecTrans){
     return matrix;
 }
 
+mat4x4 matPointAt(vec3d &pos, vec3d &target, vec3d &up){
+    // Calc new forward direction
+    vec3d vecForward = target - pos;
+    vecForward = vecNormalise(vecForward);
+
+    // Calc new up direction
+    vec3d vecUp = vecForward * (up.dot(vecForward));
+    vecUp = up - vecUp;
+    vecUp = vecNormalise(vecUp);
+
+    // Cross product for new right direction
+    vec3d vecRight = vecCrossProduct(vecUp, vecForward);
+
+    // Construct new matrix
+    mat4x4 matrix = matMakeTranslate(pos);
+    matrix.m[0][0] = vecRight.x;	matrix.m[0][1] = vecRight.y;	matrix.m[0][2] = vecRight.z;	
+    matrix.m[1][0] = vecUp.x;		matrix.m[1][1] = vecUp.y;		matrix.m[1][2] = vecUp.z;		
+    matrix.m[2][0] = vecForward.x;	matrix.m[2][1] = vecForward.y;	matrix.m[2][2] = vecForward.z;
+    return matrix;
+}
+
+// Only for rotation/translation matrix where there was 3 bloody 0 on the last column
+mat4x4 matQuickInverse(mat4x4 &m){
+    mat4x4 matrix;
+    matrix.m[0][0] = m.m[0][0]; matrix.m[0][1] = m.m[1][0]; matrix.m[0][2] = m.m[2][0]; matrix.m[0][3] = 0.0f;
+    matrix.m[1][0] = m.m[0][1]; matrix.m[1][1] = m.m[1][1]; matrix.m[1][2] = m.m[2][1]; matrix.m[1][3] = 0.0f;
+    matrix.m[2][0] = m.m[0][2]; matrix.m[2][1] = m.m[1][2]; matrix.m[2][2] = m.m[2][2]; matrix.m[2][3] = 0.0f;
+    matrix.m[3][0] = -(m.m[3][0] * matrix.m[0][0] + m.m[3][1] * matrix.m[1][0] + m.m[3][2] * matrix.m[2][0]);
+    matrix.m[3][1] = -(m.m[3][0] * matrix.m[0][1] + m.m[3][1] * matrix.m[1][1] + m.m[3][2] * matrix.m[2][1]);
+    matrix.m[3][2] = -(m.m[3][0] * matrix.m[0][2] + m.m[3][1] * matrix.m[1][2] + m.m[3][2] * matrix.m[2][2]);
+    matrix.m[3][3] = 1.0f;
+    return matrix;
+}
+
 mat4x4 matMakeRotationX(float fAngleRad)
 {
     mat4x4 matrix;
