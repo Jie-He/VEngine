@@ -10,11 +10,11 @@ cd VEngine/
 mkdir build
 cd build
 ```
-For OpenCV build:
+For OpenCV build (Runs on windows/linux if you have the OpenCV library):
 ```
 cmake -DOPENCV=1 .. && make
 ```
-For PSVita build
+For PSVita build (requires VITASDK)
 ```
 cmake -DPSVITA=1 .. && make
 ```
