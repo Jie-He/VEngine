@@ -2,7 +2,7 @@ if (OPENCV)
     cmake_minimum_required(VERSION 2.8)
     project( VEngine )
 
-    SET(GCC_COVERAGE_COMPILE_FLAGS "-D OPENCV")
+    SET(GCC_COVERAGE_COMPILE_FLAGS "-D OPENCV -Wno-deprecated")
     
     find_package( OpenCV REQUIRED )
     add_executable( VEngine
@@ -50,7 +50,7 @@ elseif(PSVITA)
     ## Flags and includes for building
     # Note that we make sure not to overwrite previous flags
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -D PSVITA")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -D PSVITA -Wno-deprecated")
     # Optional. You can specify more param.sfo flags this way.
     set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d PARENTAL_LEVEL=1")
 
@@ -106,7 +106,7 @@ elseif(PSVITA)
     FILE sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
     
     FILE res/Cube.obj res/Cube.obj
-    #FILE res/Nier.obj res/Nier.obj
+    FILE res/Nier.obj res/Nier.obj
 
     )
 

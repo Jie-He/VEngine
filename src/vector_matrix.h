@@ -146,6 +146,8 @@ struct mesh{
     int nBaseR = 0;
     int nBaseG = 0;
     int nBaseB = 0;
+
+    // Need directional vectors
     
     vec3d origin;
 

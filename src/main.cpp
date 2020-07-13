@@ -23,11 +23,11 @@ class mVEngine : public VEngine{
 		scene.push_back(meshCube);
 		scene.push_back(meshCube);
 
-		vec3d vecTrans( -3.6f, 0.0f, 5.0f);
+		vec3d vecTrans( -3.6f, 1.0f, 5.0f);
 		scene[0].ApplyTranslation(vecTrans);
-		vecTrans = vec3d(0.0f, 0.0f, 5.0f);
+		vecTrans = vec3d(0.0f,-1.0f, 5.0f);
 		scene[1].ApplyTranslation(vecTrans);
-		vecTrans = vec3d(3.6f, 0.0f, 5.0f);
+		vecTrans = vec3d(3.6f, 1.0f, 5.0f);
 		scene[2].ApplyTranslation(vecTrans);
 	}
 
@@ -89,17 +89,18 @@ class mVEngine : public VEngine{
 			if (ctrl.buttons & SCE_CTRL_RTRIGGER) camMain.location += (camMain.lookAtDir* 8.0f) * fElapsedTime;
 			if (ctrl.buttons & SCE_CTRL_LTRIGGER) camMain.location -= (camMain.lookAtDir* 8.0f) * fElapsedTime;
 			
+			// [TODO] Need to rotate by vecUP and vecRight
 			// Right stick for camera rotation control
 			// Introducing 50 as deadzone for the stick (bcs my vita's sticks are broke af)
 			// Left right rotation
-			if (abs(ctrl.lx - 128) > 50){
-				mat4x4 matYawRot = matMakeRotationY( ctrl.lx / 100.0f * fElapsedTime );
+			if (abs(ctrl.rx - 128) > 50){
+				mat4x4 matYawRot = matMakeRotationY( (128 -ctrl.rx) / 50.0f * fElapsedTime );
 				camMain.ApplyRotation(matYawRot);
 			}
 			
 			// Up down rotation (inverted)
-			if (abs(ctrl.ly - 128) > 50){
-				mat4x4 matPitchRot = matMakeRotationX( -ctrl.ly / 100.0f * fElapsedTime );
+			if (abs(ctrl.ry - 128) > 50){
+				mat4x4 matPitchRot = matMakeRotationX( (ctrl.ry - 128) / 50.0f * fElapsedTime );
 				camMain.ApplyRotation(matPitchRot);
 			}
 		#endif

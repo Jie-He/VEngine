@@ -43,6 +43,7 @@
 #include <math.h>
 // [TODO]
 #include <algorithm>
+#include <list>
 
 // Define some colours
 #ifdef PSVITA
@@ -148,6 +149,7 @@ class VEngine{
             vita2d_init();
             vita2d_set_clear_color(BLACK);
             font = vita2d_load_font_mem(basicfont, basicfont_size);
+            sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
             #endif
 
             // init the mat_proj values [RE]
