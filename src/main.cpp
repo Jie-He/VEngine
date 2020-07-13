@@ -4,15 +4,15 @@ class mVEngine : public VEngine{
 
 	private:
 		//mesh meshCube;
-		std::vector<mesh> scene;
+		std::vector<vMesh> scene;
 
 	void onCreate() override{
 		
-		mesh meshCube;
+		vMesh meshCube;
 
 		// Loading the basic cube
 		#ifdef OPENCV
-	 	     meshCube.LoadFromObjectFile("../res/Cube.obj");
+	 	meshCube.LoadFromObjectFile("../res/Cube.obj");
 		#endif
 
 		#ifdef PSVITA
@@ -23,11 +23,9 @@ class mVEngine : public VEngine{
 		scene.push_back(meshCube);
 		scene.push_back(meshCube);
 
-		vec3d vecTrans( -3.6f, 1.0f, 5.0f);
+		vec3d vecTrans( 0.0f, 0.0f, 5.0f );
 		scene[0].ApplyTranslation(vecTrans);
-		vecTrans = vec3d(0.0f,-1.0f, 5.0f);
 		scene[1].ApplyTranslation(vecTrans);
-		vecTrans = vec3d(3.6f, 1.0f, 5.0f);
 		scene[2].ApplyTranslation(vecTrans);
 	}
 
@@ -42,52 +40,56 @@ class mVEngine : public VEngine{
 		// 	   matRot  = matMultiplyMatrix(matRotZ, matRot );
 		
 		//meshCube.ApplyRotation(matRot, meshCube.origin);
-		scene[0].ApplyRotation(matRotX, scene[0].origin);
-		scene[1].ApplyRotation(matRotY, scene[1].origin);
-		scene[2].ApplyRotation(matRotZ, scene[2].origin);
+		vec3d vecZero;
+		scene[0].ApplyRotation(matRotX, vecZero);
+		scene[1].ApplyRotation(matRotY, vecZero);
+		scene[2].ApplyRotation(matRotZ, vecZero);
 
 		// Some basic camera control
+		vec3d vecTrans;
+		mat4x4 matRot = matIdentity();
 		// If opencv mode read keypress char
 		#ifdef OPENCV
 			// WASD for changing view vertically and horizontally
-			if (keypress == 87 || keypress == 119) camMain.location -= (camMain.vecUp    * 8.0f) * fElapsedTime;
-			if (keypress == 83 || keypress == 115) camMain.location += (camMain.vecUp    * 8.0f) * fElapsedTime;
-			if (keypress == 65 || keypress ==  97) camMain.location -= (camMain.vecRight * 8.0f) * fElapsedTime;
-			if (keypress == 68 || keypress == 100) camMain.location += (camMain.vecRight * 8.0f) * fElapsedTime;
+			if (keypress == 87 || keypress == 119) vecTrans -= (camMain.getVecVertical()  * 8.0f) * fElapsedTime;
+			if (keypress == 83 || keypress == 115) vecTrans += (camMain.getVecVertical()  * 8.0f) * fElapsedTime;
+			if (keypress == 65 || keypress ==  97) vecTrans -= (camMain.getVecHorizontal() * 8.0f) * fElapsedTime;
+			if (keypress == 68 || keypress == 100) vecTrans += (camMain.getVecHorizontal() * 8.0f) * fElapsedTime;
 			// ZX for forward and backward
-			if (keypress == 90 || keypress == 122) camMain.location += (camMain.lookAtDir* 8.0f) * fElapsedTime;
-			if (keypress == 88 || keypress == 120) camMain.location -= (camMain.lookAtDir* 8.0f) * fElapsedTime;
+			if (keypress == 90 || keypress == 122) vecTrans += (camMain.getVecForward() * 8.0f) * fElapsedTime;
+			if (keypress == 88 || keypress == 120) vecTrans -= (camMain.getVecForward() * 8.0f) * fElapsedTime;
+			
 			// QE for Y axis rotation
 			if (keypress == 81 || keypress == 113) {
 				mat4x4 matYawRot = matMakeRotationY( 8.0f * fElapsedTime );
-				camMain.ApplyRotation(matYawRot);
+				matRot = matMultiplyMatrix(matYawRot, matRot);
 			}
 			if (keypress == 69 || keypress == 101){ 
 				mat4x4 matYawRot = matMakeRotationY(-8.0f * fElapsedTime );
-				camMain.ApplyRotation(matYawRot);
+				matRot = matMultiplyMatrix(matYawRot, matRot);
 			}
 			// IK for Pitch, x axis rotation
 			if (keypress == 73 || keypress == 105){ 
 				mat4x4 matPitchRot = matMakeRotationX( 8.0f * fElapsedTime );
-				camMain.ApplyRotation(matPitchRot);
+				matRot = matMultiplyMatrix(matPitchRot, matRot);
 			}
 			
 			if (keypress == 107 || keypress == 75) {
 				mat4x4 matPitchRot = matMakeRotationX(-8.0f * fElapsedTime );
-				camMain.ApplyRotation(matPitchRot);
+				matRot = matMultiplyMatrix(matPitchRot, matRot);
 			}
 		#endif
 
 		#ifdef PSVITA
 			// DPAD for vertical and horizontal view change
-			if (ctrl.buttons & SCE_CTRL_UP   )	camMain.location -= (camMain.vecUp    * 8.0f) * fElapsedTime;
-			if (ctrl.buttons & SCE_CTRL_DOWN )  camMain.location += (camMain.vecUp    * 8.0f) * fElapsedTime;
-			if (ctrl.buttons & SCE_CTRL_LEFT )  camMain.location -= (camMain.vecRight * 8.0f) * fElapsedTime;
-			if (ctrl.buttons & SCE_CTRL_RIGHT)  camMain.location += (camMain.vecRight * 8.0f) * fElapsedTime;
+			if (ctrl.buttons & SCE_CTRL_UP   )	vecTrans -= (camMain.getVecVertical()   * 8.0f) * fElapsedTime;
+			if (ctrl.buttons & SCE_CTRL_DOWN )  vecTrans += (camMain.getVecVertical()   * 8.0f) * fElapsedTime;
+			if (ctrl.buttons & SCE_CTRL_LEFT )  vecTrans -= (camMain.getVecHorizontal() * 8.0f) * fElapsedTime;
+			if (ctrl.buttons & SCE_CTRL_RIGHT)  vecTrans += (camMain.getVecHorizontal() * 8.0f) * fElapsedTime;
 
 			// L and R trigger for back and forward movement respectively
-			if (ctrl.buttons & SCE_CTRL_RTRIGGER) camMain.location += (camMain.lookAtDir* 8.0f) * fElapsedTime;
-			if (ctrl.buttons & SCE_CTRL_LTRIGGER) camMain.location -= (camMain.lookAtDir* 8.0f) * fElapsedTime;
+			if (ctrl.buttons & SCE_CTRL_RTRIGGER) vecTrans += (camMain.getVecForward() * 8.0f) * fElapsedTime;
+			if (ctrl.buttons & SCE_CTRL_LTRIGGER) vecTrans -= (camMain.getVecForward() * 8.0f) * fElapsedTime;
 			
 			// [TODO] Need to rotate by vecUP and vecRight
 			// Right stick for camera rotation control
@@ -95,20 +97,18 @@ class mVEngine : public VEngine{
 			// Left right rotation
 			if (abs(ctrl.rx - 128) > 50){
 				mat4x4 matYawRot = matMakeRotationY( (128 -ctrl.rx) / 50.0f * fElapsedTime );
-				camMain.ApplyRotation(matYawRot);
+				matRot = matMultiplyMatrix(matYawRot, matRot);
 			}
 			
 			// Up down rotation (inverted)
 			if (abs(ctrl.ry - 128) > 50){
 				mat4x4 matPitchRot = matMakeRotationX( (ctrl.ry - 128) / 50.0f * fElapsedTime );
-				camMain.ApplyRotation(matPitchRot);
+				matRot = matMultiplyMatrix(matPitchRot, matRot);
 			}
 		#endif
-		// Need to do this when every camera setting is changed.
-		// Not every cycle when nothing is happening to camera
-		vec3d vecTarget = camMain.location + camMain.lookAtDir;
-		camMain.pointAt(vecTarget);
 
+		camMain.ApplyTranslation(vecTrans);
+		camMain.ApplyRotation(matRot, camMain.getVecLocation());
 
 		draw_scene(scene);
 	}
@@ -130,24 +130,3 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
-		
-	// Define the vertex for a cube, could keep it for debugging.
-	/**meshCube.tris = {
-						triangle(vec3d(0.0f, 0.0f, 0.0f),	vec3d(0.0f, 1.0f, 0.0f),	vec3d(1.0f, 1.0f, 0.0f), 255.0f),
-						triangle(vec3d(0.0f, 0.0f, 0.0f),	vec3d(1.0f, 1.0f, 0.0f),	vec3d(1.0f, 0.0f, 0.0f), 255.0f),
-						
-						triangle(vec3d(1.0f, 0.0f, 0.0f),	vec3d(1.0f, 1.0f, 0.0f),	vec3d(1.0f, 1.0f, 1.0f), 255.0f),
-						triangle(vec3d(1.0f, 0.0f, 0.0f),	vec3d(1.0f, 1.0f, 1.0f),	vec3d(1.0f, 0.0f, 1.0f), 255.0f),
-						
-						triangle(vec3d(1.0f, 0.0f, 1.0f),	vec3d(1.0f, 1.0f, 1.0f),	vec3d(0.0f, 1.0f, 1.0f), 255.0f),
-						triangle(vec3d(1.0f, 0.0f, 1.0f),	vec3d(0.0f, 1.0f, 1.0f),	vec3d(0.0f, 0.0f, 1.0f), 255.0f),
-						
-						triangle(vec3d(0.0f, 0.0f, 1.0f),	vec3d(0.0f, 1.0f, 1.0f),	vec3d(0.0f, 1.0f, 0.0f), 255.0f),
-						triangle(vec3d(0.0f, 0.0f, 1.0f),	vec3d(0.0f, 1.0f, 0.0f),	vec3d(0.0f, 0.0f, 0.0f), 255.0f),
-						
-						triangle(vec3d(0.0f, 1.0f, 0.0f),	vec3d(0.0f, 1.0f, 1.0f),	vec3d(1.0f, 1.0f, 1.0f), 255.0f),
-						triangle(vec3d(0.0f, 1.0f, 0.0f),	vec3d(1.0f, 1.0f, 1.0f),	vec3d(1.0f, 1.0f, 0.0f), 255.0f),
-						
-						triangle(vec3d(1.0f, 0.0f, 1.0f),	vec3d(0.0f, 0.0f, 1.0f),	vec3d(0.0f, 0.0f, 0.0f), 255.0f),
-						triangle(vec3d(1.0f, 0.0f, 1.0f),	vec3d(0.0f, 0.0f, 0.0f),	vec3d(1.0f, 0.0f, 0.0f), 255.0f)
-					}; **/

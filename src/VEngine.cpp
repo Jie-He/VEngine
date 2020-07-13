@@ -128,10 +128,6 @@ int TriangleClipAgainstPlane(vec3d plane_p, vec3d plane_n, triangle &in_tri, tri
 		// smaller output triangles if required. There are four possible
 		// outcomes...
 
-		if (nInsidePointCount == 0)
-			return 0; // No returned triangles are valid
-
-
 		if (nInsidePointCount == 3){
 			// All points lie on the inside of plane, so do nothing
 			out_tri1 = in_tri;
@@ -175,13 +171,17 @@ int TriangleClipAgainstPlane(vec3d plane_p, vec3d plane_n, triangle &in_tri, tri
 
 			return 2;
 		}
+
+        // If all three points are outside
+		return 0; // No returned triangles are valid
+
 	}
 
 // Draw a single mesh [RE]
-void VEngine::draw_scene(std::vector<mesh>& sceMesh){
+void VEngine::draw_scene(std::vector<vMesh>& sceMesh){
     std::vector<triangle> vecTrianglesToRaster;
 
-    for (mesh& mh : sceMesh){
+    for (vMesh& mh : sceMesh){
         for (auto& tri : mh.tris){
             // Normal calculation
             vec3d normal, line1, line2;
@@ -195,25 +195,25 @@ void VEngine::draw_scene(std::vector<mesh>& sceMesh){
             normal = vecNormalise(normal);
 
             // Only draw it if its visible from view
-            vec3d temp = tri.p[0] - camMain.location;
+            vec3d temp = tri.p[0] - camMain.getVecLocation();
             if (normal.dot(temp) < 0.0f){
                 triangle triProjected, triTranslate, triScale;
                 // Project to camera view first
-                triProjected.p[0] = matMultiplyVector(camMain.matCamera, tri.p[0]);
-                triProjected.p[1] = matMultiplyVector(camMain.matCamera, tri.p[1]);
-                triProjected.p[2] = matMultiplyVector(camMain.matCamera, tri.p[2]);
+                triProjected.p[0] = matMultiplyVector(camMain.matCamView, tri.p[0]);
+                triProjected.p[1] = matMultiplyVector(camMain.matCamView, tri.p[1]);
+                triProjected.p[2] = matMultiplyVector(camMain.matCamView, tri.p[2]);
 
                 int nClippedTriangles = 0;
                 triangle clipped[2];
 
                 nClippedTriangles = TriangleClipAgainstPlane({0.0f, 0.0f, 0.1f}, {0.0f, 0.0f, 1.0f},
                                                 triProjected, clipped[0], clipped[1]);
-
+                
                 for (int n = 0; n < nClippedTriangles; n++){
                      // Project the vec3d with the projection matrix
-                    triProjected.p[0] = matMultiplyVector(matProjection, clipped[n].p[0]);
-                    triProjected.p[1] = matMultiplyVector(matProjection, clipped[n].p[1]);
-                    triProjected.p[2] = matMultiplyVector(matProjection, clipped[n].p[2]);
+                    triProjected.p[0] = matMultiplyVector(camMain.matCamProj, clipped[n].p[0]);
+                    triProjected.p[1] = matMultiplyVector(camMain.matCamProj, clipped[n].p[1]);
+                    triProjected.p[2] = matMultiplyVector(camMain.matCamProj, clipped[n].p[2]);
 
                     // Temp, translating to the centre of the screen (0,0)
                     vec3d vecTranslate(1.0f, 1.0f, 0.0f);
@@ -238,63 +238,63 @@ void VEngine::draw_scene(std::vector<mesh>& sceMesh){
                 }
             }
         }
-    }
+    
 
-    // sort the faces by distance, :. Painter's Method
-    // Change to Depth buffer later
-    std::sort(vecTrianglesToRaster.begin(), vecTrianglesToRaster.end(),
-         [](triangle &t1, triangle &t2){
-             float z1 = (t1.p[0].z + t1.p[1].z + t1.p[2].z) / 3.0f;
-             float z2 = (t2.p[0].z + t2.p[1].z + t2.p[2].z) / 3.0f;
-             
-             return z1 > z2;
-         });
+        // sort the faces by distance, :. Painter's Method
+        // Change to Depth buffer later
+        std::sort(vecTrianglesToRaster.begin(), vecTrianglesToRaster.end(),
+            [](triangle &t1, triangle &t2){
+                float z1 = (t1.p[0].z + t1.p[1].z + t1.p[2].z) / 3.0f;
+                float z2 = (t2.p[0].z + t2.p[1].z + t2.p[2].z) / 3.0f;
+                
+                return z1 > z2;
+            });
 
-    for (auto &triToRaster : vecTrianglesToRaster){
-        // Clip triangles against all four screen edges, this could yield
-        triangle clipped[2];
-        std::list<triangle> listTriangles;
+        for (auto &triToRaster : vecTrianglesToRaster){
+            // Clip triangles against all four screen edges, this could yield
+            triangle clipped[2];
+            std::list<triangle> listTriangles;
 
-        // Add initial triangle
-        listTriangles.push_back(triToRaster);
-        int nNewTriangles = 1;
+            // Add initial triangle
+            listTriangles.push_back(triToRaster);
+            int nNewTriangles = 1;
 
-        for (int p = 0; p < 4; p++){
-            int nTrisToAdd = 0;
-            while (nNewTriangles > 0)
-            {
-                // Take triangle from front of queue
-                triangle test = listTriangles.front();
-                listTriangles.pop_front();
-                nNewTriangles--;
-
-                // Clip it against a plane. We only need to test each 
-                // subsequent plane, against subsequent new triangles
-                // as all triangles after a plane clip are guaranteed
-                // to lie on the inside of the plane. I like how this
-                // comment is almost completely and utterly justified
-                switch (p)
+            for (int p = 0; p < 4; p++){
+                int nTrisToAdd = 0;
+                while (nNewTriangles > 0)
                 {
-                case 0:	nTrisToAdd = TriangleClipAgainstPlane({ 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, test, clipped[0], clipped[1]); break;
-                case 1:	nTrisToAdd = TriangleClipAgainstPlane({ 0.0f, (float)(SCREEN_HEIGHT) - 1, 0.0f }, { 0.0f, -1.0f, 0.0f }, test, clipped[0], clipped[1]); break;
-                case 2:	nTrisToAdd = TriangleClipAgainstPlane({ 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, test, clipped[0], clipped[1]); break;
-                case 3:	nTrisToAdd = TriangleClipAgainstPlane({ (float)(SCREEN_WIDTH - 1), 0.0f, 0.0f }, { -1.0f, 0.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+                    // Take triangle from front of queue
+                    triangle test = listTriangles.front();
+                    listTriangles.pop_front();
+                    nNewTriangles--;
+
+                    // Clip it against a plane. We only need to test each 
+                    // subsequent plane, against subsequent new triangles
+                    // as all triangles after a plane clip are guaranteed
+                    // to lie on the inside of the plane. I like how this
+                    // comment is almost completely and utterly justified
+                    switch (p)
+                    {
+                    case 0:	nTrisToAdd = TriangleClipAgainstPlane({ 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+                    case 1:	nTrisToAdd = TriangleClipAgainstPlane({ 0.0f, (float)(SCREEN_HEIGHT) - 1, 0.0f }, { 0.0f, -1.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+                    case 2:	nTrisToAdd = TriangleClipAgainstPlane({ 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+                    case 3:	nTrisToAdd = TriangleClipAgainstPlane({ (float)(SCREEN_WIDTH - 1), 0.0f, 0.0f }, { -1.0f, 0.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+                    }
+
+                    // Clipping may yield a variable number of triangles, so
+                    // add these new ones to the back of the queue for subsequent
+                    // clipping against next planes
+                    for (int w = 0; w < nTrisToAdd; w++)
+                        listTriangles.push_back(clipped[w]);
                 }
-
-                // Clipping may yield a variable number of triangles, so
-                // add these new ones to the back of the queue for subsequent
-                // clipping against next planes
-                for (int w = 0; w < nTrisToAdd; w++)
-                    listTriangles.push_back(clipped[w]);
+                nNewTriangles = listTriangles.size();
             }
-            nNewTriangles = listTriangles.size();
-        }
 
-
-        for (auto &t : listTriangles){
-            fill_triangle(t, t.fGrayScale, t.fGrayScale, t.fGrayScale);   
-            draw_triangle(t);
-        }
+            for (auto &t : listTriangles){
+                fill_triangle(t, t.fGrayScale, t.fGrayScale, t.fGrayScale);   
+                draw_triangle(t);
+            }
+        } 
     }
 }
 

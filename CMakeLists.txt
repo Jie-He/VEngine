@@ -9,7 +9,13 @@ if (OPENCV)
                     src/main.cpp
                     src/vector_matrix.h
                     src/vector_matrix.cpp
-                    src/VEngine.h
+                    src/vObject.h
+                    src/vObject.cpp
+                    src/vCamera.h
+                    src/vCamera.cpp
+                    src/vMesh.h
+		    src/vMesh.cpp
+ 		    src/VEngine.h
                     src/VEngine.cpp
                     ../common/font.c)
     add_definitions(${GCC_COVERAGE_COMPILE_FLAGS})
@@ -68,12 +74,18 @@ elseif(PSVITA)
     ## Build and link
     # Add all the files needed to compile here
     add_executable(${PROJECT_NAME}
-    src/main.cpp
-    ../common/font.c
-    src/vector_matrix.h
-    src/vector_matrix.cpp
-    src/VEngine.h
-    src/VEngine.cpp
+      src/main.cpp
+      ../common/font.c
+      src/vector_matrix.h
+      src/vector_matrix.cpp
+      src/vObject.h
+      src/vObject.cpp
+      src/vCamera.h
+      src/vCamera.cpp
+      src/vMesh.h
+      src/vMesh.cpp
+      src/VEngine.h
+      src/VEngine.cpp
     )
 
     # Library to link to (drop the -l prefix). This will mostly be stubs.
