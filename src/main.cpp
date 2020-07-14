@@ -19,14 +19,23 @@ class mVEngine : public VEngine{
 		meshCube.LoadFromObjectFile("app0:/res/Cube.obj");
 		#endif
 
+		meshCube.setColour(255, 0, 0);
 		scene.push_back(meshCube);
+		meshCube.setColour(0, 255, 0);
 		scene.push_back(meshCube);
+		meshCube.setColour(0, 0, 255);
 		scene.push_back(meshCube);
 
+		#ifdef OPENCV
+		meshCube.LoadFromObjectFile("../res/Nier.obj");
+		scene.push_back(meshCube);
+		#endif
 		vec3d vecTrans( 0.0f, 0.0f, 5.0f );
 		scene[0].ApplyTranslation(vecTrans);
 		scene[1].ApplyTranslation(vecTrans);
 		scene[2].ApplyTranslation(vecTrans);
+		vecTrans = vec3d(0.0f, 0.0f, -10.0f);
+		camMain.ApplyTranslation(vecTrans);
 	}
 
 	void update (float fElapsedTime) override{
@@ -61,21 +70,22 @@ class mVEngine : public VEngine{
 			
 			// QE for Y axis rotation
 			if (keypress == 81 || keypress == 113) {
-				mat4x4 matYawRot = matMakeRotationY( 8.0f * fElapsedTime );
-				matRot = matMultiplyMatrix(matYawRot, matRot);
+				//mat4x4 matYawRot = matMakeRotationY( 8.0f * fElapsedTime );
+				mat4x4 matYawRot = matMakeRotationAxis(camMain.getVecLocation(), camMain.getVecVertical(), 2.0f * fElapsedTime);
+				matRot = matYawRot;
 			}
 			if (keypress == 69 || keypress == 101){ 
-				mat4x4 matYawRot = matMakeRotationY(-8.0f * fElapsedTime );
-				matRot = matMultiplyMatrix(matYawRot, matRot);
+				mat4x4 matYawRot = matMakeRotationAxis(camMain.getVecLocation(), camMain.getVecVertical(),-2.0f * fElapsedTime);
+				matRot = matYawRot;
 			}
 			// IK for Pitch, x axis rotation
 			if (keypress == 73 || keypress == 105){ 
-				mat4x4 matPitchRot = matMakeRotationX( 8.0f * fElapsedTime );
+				mat4x4 matPitchRot = matMakeRotationAxis(camMain.getVecLocation(), camMain.getVecHorizontal(), 2.0f * fElapsedTime);
 				matRot = matMultiplyMatrix(matPitchRot, matRot);
 			}
 			
 			if (keypress == 107 || keypress == 75) {
-				mat4x4 matPitchRot = matMakeRotationX(-8.0f * fElapsedTime );
+				mat4x4 matPitchRot = matMakeRotationAxis(camMain.getVecLocation(), camMain.getVecHorizontal(),-2.0f * fElapsedTime);
 				matRot = matMultiplyMatrix(matPitchRot, matRot);
 			}
 		#endif
@@ -111,6 +121,36 @@ class mVEngine : public VEngine{
 		camMain.ApplyRotation(matRot, camMain.getVecLocation());
 
 		draw_scene(scene);
+
+		// Draw some text
+		char buff1[36];
+		sprintf(buff1, "CAM: %6.3f, %6.3f, %6.3f", camMain.getVecLocation().x, camMain.getVecLocation().y, camMain.getVecLocation().z);
+		char buff2[36];
+		sprintf(buff2, "FOW: %6.3f, %6.3f, %6.3f", camMain.getVecForward().x, camMain.getVecForward().y, camMain.getVecForward().z);
+		char buff3[36];
+		sprintf(buff3, "VET: %6.3f, %6.3f, %6.3f", camMain.getVecVertical().x, camMain.getVecVertical().y, camMain.getVecVertical().z);
+		char buff4[36];
+		sprintf(buff4, "HOR: %6.3f, %6.3f, %6.3f", camMain.getVecHorizontal().x, camMain.getVecHorizontal().y, camMain.getVecHorizontal().z);
+		#ifdef OPENCV
+		cv::putText(canvas, buff1, cv::Point(10, 40),
+                        cv::FONT_HERSHEY_DUPLEX,
+                        0.5, CV_RGB(255, 255, 255), 1);
+		cv::putText(canvas, buff2, cv::Point(10, 60),
+                        cv::FONT_HERSHEY_DUPLEX,
+                        0.5, CV_RGB(255, 255, 255), 1);
+		cv::putText(canvas, buff3, cv::Point(10, 80),
+                        cv::FONT_HERSHEY_DUPLEX,
+                        0.5, CV_RGB(255, 255, 255), 1);
+		cv::putText(canvas, buff4, cv::Point(10,100),
+                        cv::FONT_HERSHEY_DUPLEX,
+                        0.5, CV_RGB(255, 255, 255), 1);
+		#endif
+		#ifdef PSVITA
+		vita2d_font_draw_text(font, 20, 40, WHITE, 11, buff1);
+		vita2d_font_draw_text(font, 20, 60, WHITE, 11, buff2);
+		vita2d_font_draw_text(font, 20, 80, WHITE, 11, buff3);
+		vita2d_font_draw_text(font, 20,100, WHITE, 11, buff4);
+		#endif
 	}
 };
 
@@ -124,8 +164,8 @@ int main(int argc, char *argv[]) {
 	mve.start();
 
 	#ifdef PSVITA
-	// Call exit
-	sceKernelExitProcess(0);
+		// Call exit
+		sceKernelExitProcess(0);
 	#endif
 
     return 0;

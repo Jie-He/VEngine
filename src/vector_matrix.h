@@ -126,20 +126,25 @@ mat4x4 matQuickInverse(mat4x4&);
 mat4x4 matMakeRotationX(float);
 mat4x4 matMakeRotationY(float);
 mat4x4 matMakeRotationZ(float);
+// Location vector, Axis vector, degree
+mat4x4 matMakeRotationAxis(vec3d&, vec3d&, float);
 mat4x4 matMultiplyMatrix(mat4x4&, mat4x4&);
 
 struct triangle{
     vec3d p[3];
-    float fGrayScale = 255.0f;
-    // Default constructor
+    vec3d colour;
+
     triangle(){
-        fGrayScale=255.0f;
-    }
-    triangle(vec3d a, vec3d b, vec3d c, float fG=255.0f){
-        p[0] = a;
-        p[1] = b;
-        p[2] = c;
-        fGrayScale = fG;
+        colour = vec3d(255.0f, 255.0f, 255.0f);
+    };
+
+    triangle(vec3d va, vec3d vb, vec3d vc, int r=255, int g=255, int b=255){
+        p[0] = va;
+        p[1] = vb;
+        p[2] = vc;
+        colour.x = r;
+        colour.y = g;
+        colour.z = b;
     }
     // A base colour for this face?
 };

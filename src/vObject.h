@@ -19,7 +19,7 @@ class vObject{
     protected:
         // Object location
         vec3d vecLocation;
-        // All with respect to vecLocation
+        // All with respect to ZERO
         vec3d vecForward;
         vec3d vecVertical;
         vec3d vecHorizontal;

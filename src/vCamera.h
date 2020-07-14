@@ -11,12 +11,6 @@ class vCamera : public vObject{
             vObject();
             // Calculate viewing matrix from the three directional matrix
             matCamView = matPointAt(vecLocation, vecForward, vecVertical);
-            #ifdef OPENCV
-            std::cout << vecLocation.x << vecLocation.y << vecLocation.z << std::endl;
-            std::cout << vecForward.x << vecForward.y << vecForward.z << std::endl;
-            std::cout << vecVertical.x << vecVertical.y << vecVertical.z << std::endl;
-            std::cout << vecHorizontal.x << vecHorizontal.y << vecHorizontal.z << std::endl;
-            #endif
         }
 
         vCamera(mat4x4 matProj){

@@ -137,8 +137,8 @@ int TriangleClipAgainstPlane(vec3d plane_p, vec3d plane_n, triangle &in_tri, tri
 		if (nInsidePointCount == 1 && nOutsidePointCount == 2){
 			// Triangle should be clipped. As two points lie outside
 			// the plane, the triangle simply becomes a smaller triangle
-
-            out_tri1.fGrayScale = in_tri.fGrayScale;
+            
+            out_tri1.colour = in_tri.colour;
 			out_tri1.p[0] = *inside_points[0];
 
 			// but the two new points are at the locations where the 
@@ -153,8 +153,8 @@ int TriangleClipAgainstPlane(vec3d plane_p, vec3d plane_n, triangle &in_tri, tri
 			// the clipped triangle becomes a "quad". Fortunately, we can
 			// represent a quad with two new triangles
             
-            out_tri1.fGrayScale = in_tri.fGrayScale;
-            out_tri2.fGrayScale = in_tri.fGrayScale;
+            out_tri1.colour = in_tri.colour;
+            out_tri2.colour = in_tri.colour;
 			// The first triangle consists of the two inside points and a new
 			// point determined by the location where one side of the triangle
 			// intersects with the plane
@@ -194,6 +194,12 @@ void VEngine::draw_scene(std::vector<vMesh>& sceMesh){
             // Normalise a normal
             normal = vecNormalise(normal);
 
+            // Simple light shading
+            vec3d vecToLight = vecLight - tri.p[0];
+            vecToLight = vecNormalise(vecToLight);
+            float ls = normal.dot(vecToLight);
+            tri.colour = mh.getBaseColour() * ls;
+
             // Only draw it if its visible from view
             vec3d temp = tri.p[0] - camMain.getVecLocation();
             if (normal.dot(temp) < 0.0f){
@@ -226,11 +232,7 @@ void VEngine::draw_scene(std::vector<vMesh>& sceMesh){
                     triScale.p[0] = triTranslate.p[0] * vecScale;
                     triScale.p[1] = triTranslate.p[1] * vecScale;
                     triScale.p[2] = triTranslate.p[2] * vecScale;
-
-                    // Simple light shading
-                    vecLight = vecNormalise(vecLight);
-                    float ls = vecLight.dot(normal) * 255;
-                    triScale.fGrayScale = ls;
+                    triScale.colour = tri.colour;
                     
                     vecTrianglesToRaster.push_back(triScale);
                     //fill_triangle(triScale, ls, ls, ls);
@@ -291,8 +293,8 @@ void VEngine::draw_scene(std::vector<vMesh>& sceMesh){
             }
 
             for (auto &t : listTriangles){
-                fill_triangle(t, t.fGrayScale, t.fGrayScale, t.fGrayScale);   
-                draw_triangle(t);
+                fill_triangle(t, t.colour);   
+                //draw_triangle(t);
             }
         } 
     }
@@ -329,15 +331,77 @@ void VEngine::draw_triangle(triangle& tri){
     #endif
 }
 
-void VEngine::fill_triangle(triangle& tri, int R=255, int G=255, int B=255){
-    #ifdef PSVITA
-    // [TODO]
+void VEngine::fill_triangle(triangle& tri, vec3d& colour){
+
+    int R(colour.x), G(colour.y), B(colour.z);
+    #ifdef OPENCV
+    cv::Vec3b tColour = cv::Vec3b(B, G, R);
     #endif
 
-    #ifdef OPENCV
-    std::vector<cv::Point> pts = {  cv::Point(tri.p[0].x, tri.p[0].y),
-                                    cv::Point(tri.p[1].x, tri.p[1].y),
-                                    cv::Point(tri.p[2].x, tri.p[2].y)};
-    cv::fillPoly(canvas, pts, cv::Scalar(B, G, R));   
+    #ifdef PSVITA
+    unsigned int tColour = RGBA8((int)colour.x, (int)colour.y, (int)colour.z, 0xFF);
     #endif
+    
+    // Test drawing line
+    int ax = tri.p[0].x;
+    int ay = tri.p[0].y;
+    int bx = tri.p[1].x;
+    int by = tri.p[1].y;
+    int cx = tri.p[2].x;
+    int cy = tri.p[2].y;
+
+    float dbcx, dbcy;
+    float dbax, dbay;
+    float dacx, dacy;
+
+    dbcx = cx - bx;
+    dbcy = cy - by;
+
+    dacx = cx - ax;
+    dacy = cy - ay;
+
+    int bcLength = sqrtf(dbcx*dbcx + dbcy*dbcy);
+    int acLength = sqrtf(dbax*dbax + dbay*dbay);
+    int abLength;
+    int skip = 1;
+    int skiq = 1;
+
+
+    dbcx /= bcLength;
+    dbcy /= bcLength;
+    dacx /= bcLength;
+    dacy /= bcLength;
+
+
+    float nbx(bx), nby(by), nax(ax), nay(ay);
+    float nnbx, nnby;
+    // draw line from b - > c
+    for (int i = 0; i < bcLength; i+= skip){
+        //canvas.at<cv::Vec3b>(cv::Point(nbx, nby)) = cv::Vec3b(255, 0, 0);
+        //canvas.at<cv::Vec3b>(cv::Point(nax, nay)) = cv::Vec3b(0, 255, 0);
+        nbx += dbcx * skip; nby += dbcy * skip;
+        nax += dacx * skip; nay += dacy * skip;
+        dbax = nax - nbx; dbay = nay - nby;
+        abLength = sqrtf(dbax*dbax + dbay*dbay);
+
+        dbax /= abLength;
+        dbay /= abLength;
+
+        nnbx = nbx; nnby = nby;
+        for (int j = 0; j < abLength; j+= skiq){
+            #ifdef OPENCV
+                canvas.at<cv::Vec3b>(cv::Point(nnbx, nnby)) = tColour;
+            #endif
+            #ifdef PSVITA
+                vita2d_draw_pixel(nnbx, nnby, tColour);
+            #endif
+            nnbx += dbax * skiq; nnby += dbay * skiq;
+        }
+    } 
+
+    // Can use the default (faster) but no depth control...
+    //std::vector<cv::Point> pts = {  cv::Point(tri.p[0].x, tri.p[0].y),
+    //                                cv::Point(tri.p[1].x, tri.p[1].y),
+    //                                cv::Point(tri.p[2].x, tri.p[2].y)};
+    //cv::fillPoly(canvas, pts, cv::Scalar(B, G, R)); 
 }

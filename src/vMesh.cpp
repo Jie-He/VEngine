@@ -1,5 +1,19 @@
 #include "vMesh.h"
 
+    bool vMesh::setColour(int r, int g, int b){
+        if (r > 255 || r < 0) return false;
+        if (g > 255 || g < 0) return false;
+        if (b > 255 || b < 0) return false;
+        baseColour.x = r;
+        baseColour.y = g;
+        baseColour.z = b;
+        return true;
+    }
+
+    bool vMesh::setColour(vec3d& vc){
+        return setColour(vc.x, vc.y, vc.z);
+    }
+
     bool vMesh::LoadFromObjectFile(std::string sFilename){
         std::ifstream f(sFilename);
         if (!f.is_open())
@@ -7,7 +21,7 @@
 
         // local cache of verts
         std::vector<vec3d> verts;
-
+        tris.clear();
         while(!f.eof()){
             char line[128];
             f.getline(line, 128);

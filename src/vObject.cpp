@@ -13,6 +13,12 @@ void vObject::ApplyTranslation(vec3d& vecTrans){
 
 void vObject::ApplyRotation(mat4x4& matRot, vec3d& vecPivot){
     vec3d vecToZero(0.0f, 0.0f, 0.0f);
+    // Update all directional vector
+    // the directions are always rotating about zero   
+    vecForward    = matMultiplyVector(matRot, vecForward   );
+    vecVertical   = matMultiplyVector(matRot, vecVertical  );
+    vecHorizontal = matMultiplyVector(matRot, vecHorizontal);
+
     vecToZero = vecToZero - vecPivot;
 
     // Translation matrix to and from the zero vector
@@ -26,10 +32,7 @@ void vObject::ApplyRotation(mat4x4& matRot, vec3d& vecPivot){
 
     // Incase its not rotation at object location
     vecLocation = matMultiplyVector(matRotPivot, vecLocation);
-    // Update all directional vector
-    vecForward    = matMultiplyVector(matRotPivot, vecForward   );
-    vecVertical   = matMultiplyVector(matRotPivot, vecVertical  );
-    vecHorizontal = matMultiplyVector(matRotPivot, vecHorizontal);
+   
 }
 
 void vObject::PointAt(vec3d& vecTarget){

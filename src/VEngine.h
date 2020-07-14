@@ -122,7 +122,7 @@ class VEngine{
             camMain.setMatProj(matProjection);
 
             // Set light location
-            vecLight = vec3d(0.0f, 10.0f, -10.0f);
+            vecLight = vec3d(0.0f, -10.0f, 0.0f);
         };
         // do it later
         ~VEngine(){
@@ -143,7 +143,7 @@ class VEngine{
 
         // Drawing stuff
         void draw_triangle(triangle&);
-        void fill_triangle(triangle&, int, int, int);
+        void fill_triangle(triangle&, vec3d&);
         void draw_scene(std::vector<vMesh>&);
     private:
         // A while loop basically

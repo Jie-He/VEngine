@@ -90,7 +90,6 @@ mat4x4 matMakeRotationX(float fAngleRad)
     return matrix;
 }
 
-
 mat4x4 matMakeRotationY(float fAngleRad)
 {
     mat4x4 matrix;
@@ -112,6 +111,31 @@ mat4x4 matMakeRotationZ(float fAngleRad)
     matrix.m[1][1] = cosf(fAngleRad);
     matrix.m[2][2] = 1.0f;
     matrix.m[3][3] = 1.0f;
+    return matrix;
+}
+
+mat4x4 matMakeRotationAxis(vec3d& vecLoc, vec3d& vecAxe, float fAngleRad){
+    mat4x4 matrix = matIdentity();
+    vec3d vecAxis = vecNormalise(vecAxe);
+
+    // Preparing... 
+    float u(vecAxis.x), v(vecAxis.y), w(vecAxis.z);
+    float a( vecLoc.x), b( vecLoc.y), c( vecLoc.z);
+
+    float u2 = u*u;
+    float v2 = v*v;
+    float w2 = w*w;
+
+    float co = cosf(fAngleRad);
+    float nc = 1.0f - co;
+    float so = sinf(fAngleRad);
+
+    matrix.m[0][0] = u2+(v2+w2)*co;   matrix.m[1][0] = u*v*nc+w*so;     matrix.m[2][0] = u*w*nc-v*so;
+    matrix.m[0][1] = u*v*nc-w*so;     matrix.m[1][1] = v2+(u2+w2)*co;   matrix.m[2][1] = v*w*nc+u*so;
+    matrix.m[0][2] = u*w*nc+v*so;     matrix.m[1][2] = v*w*nc-u*so;     matrix.m[2][2] = w2+(u2+v2)*co;
+    matrix.m[0][3] = (a*(v2 + w2) - u*(b*v+c*w))*nc + (b*w-c*v)*so;
+    matrix.m[1][3] = (b*(u2 + w2) - v*(a*u+c*w))*nc + (c*u-a*w)*so;
+    matrix.m[2][3] = (c*(u2 + v2) - w*(a*u+b*v))*nc + (a*v-b*u)*so;
     return matrix;
 }
 
