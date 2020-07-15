@@ -4,6 +4,8 @@ class mVEngine : public VEngine{
 
 	private:
 		//mesh meshCube;
+		vCamera camMain = vCamera(360, 360, 80, 92);
+		vCamera camMai2 = vCamera(360, 360, 520,92);
 		std::vector<vMesh> scene;
 
 	void onCreate() override{
@@ -19,44 +21,32 @@ class mVEngine : public VEngine{
 		meshCube.LoadFromObjectFile("app0:/res/Cube.obj");
 		#endif
 
-		meshCube.setColour(255, 0, 0);
 		scene.push_back(meshCube);
-		meshCube.setColour(0, 255, 0);
-		scene.push_back(meshCube);
-		meshCube.setColour(0, 0, 255);
-		scene.push_back(meshCube);
-
-		#ifdef OPENCV
-		meshCube.LoadFromObjectFile("../res/Nier.obj");
-		scene.push_back(meshCube);
-		#endif
 		vec3d vecTrans( 0.0f, 0.0f, 5.0f );
 		scene[0].ApplyTranslation(vecTrans);
-		scene[1].ApplyTranslation(vecTrans);
-		scene[2].ApplyTranslation(vecTrans);
-		vecTrans = vec3d(0.0f, 0.0f, -10.0f);
+		vecTrans = vec3d(0.0f, 0.0f, -1.0f);
 		camMain.ApplyTranslation(vecTrans);
+
+		vecTrans = vec3d(0.0f, 0.0f, 11.0f);
+		camMai2.ApplyTranslation(vecTrans);
+		vec3d vecNeg = vecNegative(camMai2.getVecForward());
+		camMai2.PointAt(vecNeg);
 	}
 
 	void update (float fElapsedTime) override{
-		//vita2d_font_draw_text(font, 128, 55, WHITE, 11, "updateFunction");
 		// rotate each face in mesh
 		float rad = ((3.14159f / 4.0f ) * fElapsedTime);
 		mat4x4 matRotX = matMakeRotationX( rad );
-		mat4x4 matRotY = matMakeRotationY( rad );
-		mat4x4 matRotZ = matMakeRotationZ( rad );
-		//mat4x4 matRot  = matMultiplyMatrix(matRotY, matRotX);
-		// 	   matRot  = matMultiplyMatrix(matRotZ, matRot );
-		
-		//meshCube.ApplyRotation(matRot, meshCube.origin);
-		vec3d vecZero;
-		scene[0].ApplyRotation(matRotX, vecZero);
-		scene[1].ApplyRotation(matRotY, vecZero);
-		scene[2].ApplyRotation(matRotZ, vecZero);
+		mat4x4 matRotZ = matMakeRotationZ( rad/2 );
+		mat4x4 matRot  = matMultiplyMatrix(matRotZ, matRotX);
+		matRot = matMakeRotationPivot(matRot, scene[0].getVecLocation());
+
+		scene[0].ApplyRotation(matRot);
+
 
 		// Some basic camera control
 		vec3d vecTrans;
-		mat4x4 matRot = matIdentity();
+		matRot = matIdentity();
 		// If opencv mode read keypress char
 		#ifdef OPENCV
 			// WASD for changing view vertically and horizontally
@@ -71,21 +61,21 @@ class mVEngine : public VEngine{
 			// QE for Y axis rotation
 			if (keypress == 81 || keypress == 113) {
 				//mat4x4 matYawRot = matMakeRotationY( 8.0f * fElapsedTime );
-				mat4x4 matYawRot = matMakeRotationAxis(camMain.getVecLocation(), camMain.getVecVertical(), 2.0f * fElapsedTime);
+				mat4x4 matYawRot = matMakeRotationY( 2.0f * fElapsedTime);
 				matRot = matYawRot;
 			}
 			if (keypress == 69 || keypress == 101){ 
-				mat4x4 matYawRot = matMakeRotationAxis(camMain.getVecLocation(), camMain.getVecVertical(),-2.0f * fElapsedTime);
+				mat4x4 matYawRot = matMakeRotationY(-2.0f * fElapsedTime);
 				matRot = matYawRot;
 			}
 			// IK for Pitch, x axis rotation
 			if (keypress == 73 || keypress == 105){ 
-				mat4x4 matPitchRot = matMakeRotationAxis(camMain.getVecLocation(), camMain.getVecHorizontal(), 2.0f * fElapsedTime);
+				mat4x4 matPitchRot = matMakeRotationX( 2.0f * fElapsedTime);
 				matRot = matMultiplyMatrix(matPitchRot, matRot);
 			}
 			
 			if (keypress == 107 || keypress == 75) {
-				mat4x4 matPitchRot = matMakeRotationAxis(camMain.getVecLocation(), camMain.getVecHorizontal(),-2.0f * fElapsedTime);
+				mat4x4 matPitchRot = matMakeRotationX(-2.0f * fElapsedTime);
 				matRot = matMultiplyMatrix(matPitchRot, matRot);
 			}
 		#endif
@@ -118,9 +108,10 @@ class mVEngine : public VEngine{
 		#endif
 
 		camMain.ApplyTranslation(vecTrans);
-		camMain.ApplyRotation(matRot, camMain.getVecLocation());
+		camMain.ApplyRotation(matRot);
 
-		draw_scene(scene);
+		draw_scene(camMain, scene);
+		draw_scene(camMai2, scene);
 
 		// Draw some text
 		char buff1[36];

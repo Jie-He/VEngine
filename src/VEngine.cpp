@@ -295,7 +295,7 @@ void VEngine::draw_scene(vCamera& camMain, std::vector<vMesh>& sceMesh){
 
             for (auto &t : listTriangles){
                 fill_triangle(t, t.colour);   
-                draw_triangle(t);
+                //draw_triangle(t);
             }
         } 
     }
