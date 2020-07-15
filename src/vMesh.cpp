@@ -21,6 +21,7 @@
 
         // local cache of verts
         std::vector<vec3d> verts;
+        // Clear the stuff in current triangle list
         tris.clear();
         while(!f.eof()){
             char line[128];

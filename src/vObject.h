@@ -15,7 +15,6 @@
 #include "vector_matrix.h"
 
 class vObject{
-    // Maybe private woule be better.. [TODO]
     protected:
         // Object location
         vec3d vecLocation;
@@ -25,6 +24,8 @@ class vObject{
         vec3d vecHorizontal;
         // Matrix for rotation at pivot
         mat4x4 matRotPivot;
+        // Active status. if not consider this object deleted
+        bool bActive;
     public:
         vObject(){
             // set the default vectors to axis
@@ -33,6 +34,7 @@ class vObject{
             vecForward   = vec3d(0.0f,  0.0f, 1.0f);
             vecVertical  = vec3d(0.0f,  1.0f, 0.0f);
             vecHorizontal= vecCrossProduct(vecVertical, vecForward);
+            bActive = true;
         }
 
         // Translate the location vector and all the directional ones.
@@ -44,12 +46,16 @@ class vObject{
         // All the directional vectors will be updated so that
         // vecForward points at the given vector
         void PointAt(vec3d& vecTarget);
+        // should pass control info too.
+        // All objects should override this
+        virtual void update(float){};
 
         // Getters
         vec3d& getVecLocation()  { return vecLocation;  };
         vec3d& getVecForward()   { return vecForward;   };
         vec3d& getVecVertical()  { return vecVertical;  };
         vec3d& getVecHorizontal(){ return vecHorizontal;};
+        bool isActive() { return bActive; };
 };
 
 #endif//_VOBJECT_

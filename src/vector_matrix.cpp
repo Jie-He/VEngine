@@ -147,3 +147,15 @@ mat4x4 matMultiplyMatrix(mat4x4 &m1, mat4x4 &m2)
             matrix.m[r][c] = m1.m[r][0] * m2.m[0][c] + m1.m[r][1] * m2.m[1][c] + m1.m[r][2] * m2.m[2][c] + m1.m[r][3] * m2.m[3][c];
     return matrix;
 }
+
+mat4x4 matMakeProjection(float fFovRad, float fAspectRatio, float fNear, float fFar){
+    mat4x4 matProj;
+    matProj.m[0][0] = fAspectRatio * fFovRad;
+    std::cout << fAspectRatio * fFovRad << std::endl;
+    matProj.m[1][1] = fFovRad;
+    matProj.m[2][2] = fFar / (fFar - fNear);
+    matProj.m[3][2] = (-fFar * fNear) / (fFar - fNear);
+    matProj.m[2][3] = 1.0f;
+    matProj.m[3][3] = 0.0f;
+    return matProj;
+}

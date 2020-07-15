@@ -1,3 +1,9 @@
+
+file(GLOB VE_SOURCE
+    "src/*.h"
+    "src/*.cpp"
+    "../common/font.c"
+)
 if (OPENCV)
     cmake_minimum_required(VERSION 2.8)
     project( VEngine )
@@ -5,19 +11,7 @@ if (OPENCV)
     SET(GCC_COVERAGE_COMPILE_FLAGS "-D OPENCV -Wno-deprecated")
     
     find_package( OpenCV REQUIRED )
-    add_executable( VEngine
-                    src/main.cpp
-                    src/vector_matrix.h
-                    src/vector_matrix.cpp
-                    src/vObject.h
-                    src/vObject.cpp
-                    src/vCamera.h
-                    src/vCamera.cpp
-                    src/vMesh.h
-		    src/vMesh.cpp
- 		    src/VEngine.h
-                    src/VEngine.cpp
-                    ../common/font.c)
+    add_executable( VEngine ${VE_SOURCE})
     add_definitions(${GCC_COVERAGE_COMPILE_FLAGS})
     target_link_libraries( VEngine ${OpenCV_LIBS} )
 elseif(PSVITA)
@@ -73,20 +67,7 @@ elseif(PSVITA)
 
     ## Build and link
     # Add all the files needed to compile here
-    add_executable(${PROJECT_NAME}
-      src/main.cpp
-      ../common/font.c
-      src/vector_matrix.h
-      src/vector_matrix.cpp
-      src/vObject.h
-      src/vObject.cpp
-      src/vCamera.h
-      src/vCamera.cpp
-      src/vMesh.h
-      src/vMesh.cpp
-      src/VEngine.h
-      src/VEngine.cpp
-    )
+    add_executable(${PROJECT_NAME} ${VE_SOURCE})
 
     # Library to link to (drop the -l prefix). This will mostly be stubs.
     target_link_libraries(${PROJECT_NAME}

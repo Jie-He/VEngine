@@ -129,6 +129,7 @@ mat4x4 matMakeRotationZ(float);
 // Location vector, Axis vector, degree
 mat4x4 matMakeRotationAxis(vec3d&, vec3d&, float);
 mat4x4 matMultiplyMatrix(mat4x4&, mat4x4&);
+mat4x4 matMakeProjection(float fFovRad, float fAspectRatio, float fNear, float fFar);
 
 struct triangle{
     vec3d p[3];

@@ -9,16 +9,20 @@ class vMesh : public vObject{
         // Base colour for a mesh
         vec3d baseColour;
 
+        vMesh(){
+            vObject();
+        };
+
         bool setColour(int r, int g, int b);
         bool setColour(vec3d& vc);
         vMesh(int r=255, int g=255, int b=255){
-            
+            setColour(r,g,b);
         };
 
         bool LoadFromObjectFile(std::string sFilename);
         void ApplyRotation(mat4x4& matRot, vec3d& vecPivot);
         void ApplyTranslation(vec3d& vecTrans);
-        vec3d getBaseColour(){ return baseColour; }
+        vec3d getBaseColour(){ return baseColour; };
 };
 
 #endif//_VMESH_
