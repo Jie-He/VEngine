@@ -9,41 +9,29 @@ class vCamera : public vObject{
         float fFov;
         float fAspectRatio;
         float fFovRad;
+
     public:
         int nScreenW, nScreenH;
+        int nOffsetX, nOffsetY;
+        float fOffsetX;
+        float fOffsetY;
         mat4x4 matCamView; // Camera viewing matrix
         mat4x4 matCamProj; // Camera projection matrix
-        vCamera(int nSw, int nSh): nScreenW(nSw), nScreenH(nSh){
-            vObject();
-            // use the default values for mat projection
-            fNear = 0.1f;
-            fFar  = 1000.0f;
-            fFov  = 90.0f;
-            fAspectRatio  = ((float)nScreenW/(float)nScreenH);
-            fFovRad       = 1.0f / tanf( (fFov * 0.5f / 180.0f * 3.14159f));
-            matCamProj = matMakeProjection(fFovRad, fAspectRatio, fNear, fFar);
-            // Calculate viewing matrix from the three directional matrix
-            matCamView = matPointAt(vecLocation, vecForward, vecVertical);
-        }
 
-        vCamera(int nSw, int nSh, float fN, float fF, float fV)
-                : nScreenW(nSw), nScreenH(nSh), fNear(fN), fFar(fF), fFov(fV){
+        vCamera(int nSw, int nSh, int nfx=0, int nfy=0, float fN=0.1f, float fF=1000.0f, float fV=90.0f)
+                : nScreenW(nSw), nScreenH(nSh), nOffsetX(nfx), nOffsetY(nfy), fNear(fN), fFar(fF), fFov(fV){
             vObject();
-            fAspectRatio = ((float)nScreenW/(float)nScreenH);
+            fAspectRatio = ((float)nScreenH/(float)nScreenW);
             fFovRad = 1.0f / tanf( (fV * 0.5f / 180.0f * 3.14159f));
             matCamProj = matMakeProjection(fFovRad, fAspectRatio, fNear, fFar);
             matCamView = matPointAt(vecLocation, vecForward, vecVertical);
-        }
 
-        vCamera(mat4x4 matProj){
-            vObject();
-            matCamProj = matProj;
-            // Calculate viewing matrix from the three directional matrix
-            matCamView = matPointAt(vecLocation, vecForward, vecVertical);
-        }
+            fOffsetX = (float)nfx/(float)nSw * 2;
+            fOffsetY = (float)nfy/(float)nSh * 2;
+        };
 
         void setMatProj(mat4x4& matProj){ matCamProj = matProj; };
-        void ApplyRotation(mat4x4& matRot, vec3d& vecPivot);
+        void ApplyRotation(mat4x4& matRot);
         void PointAt(vec3d& vecTarget);
 
 };

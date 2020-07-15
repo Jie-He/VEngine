@@ -48,23 +48,32 @@
     }
     
     // Around a pivot
-    void vMesh::ApplyRotation(mat4x4& matRot, vec3d& vecPivot){
-        vObject::ApplyRotation(matRot, vecPivot);
+    void vMesh::ApplyRotation(mat4x4& matRot){
+        vObject::ApplyRotation(matRot);
         // Update each vertex in the triangle
-        for (size_t i = 0; i < tris.size(); i++){
-			tris[i].p[0] = matMultiplyVector(matRotPivot, tris[i].p[0]);
-			tris[i].p[1] = matMultiplyVector(matRotPivot, tris[i].p[1]);
-			tris[i].p[2] = matMultiplyVector(matRotPivot, tris[i].p[2]);
-	    }
+        ApplyMatrixOnTris(matRot);
+    }
+
+    void vMesh::ApplyScaling(mat4x4& matScale){
+        vObject::ApplyScaling(matScale);
+        ApplyMatrixOnTris(matScale);
     }
 
     void vMesh::ApplyTranslation(vec3d& vecTrans){
+        // Update the origin
         vObject::ApplyTranslation(vecTrans);
-        // Update the origin too 
-        vecLocation += vecTrans;
+        // Update the mesh vertex
         for (size_t i = 0; i < tris.size(); i++){
 			tris[i].p[0] = tris[i].p[0] + vecTrans;
 			tris[i].p[1] = tris[i].p[1] + vecTrans;
 			tris[i].p[2] = tris[i].p[2] + vecTrans;
+	    }
+    }
+
+    void vMesh::ApplyMatrixOnTris(mat4x4& mat){
+        for (size_t i = 0; i < tris.size(); i++){
+			tris[i].p[0] = matMultiplyVector(mat, tris[i].p[0]);
+			tris[i].p[1] = matMultiplyVector(mat, tris[i].p[1]);
+			tris[i].p[2] = matMultiplyVector(mat, tris[i].p[2]);
 	    }
     }

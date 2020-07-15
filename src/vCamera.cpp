@@ -4,9 +4,9 @@
 #include "vCamera.h"
 
 
-void vCamera::ApplyRotation(mat4x4& matRot, vec3d& vecPivot){
+void vCamera::ApplyRotation(mat4x4& matRot){
     // Needs to recalculate if vecFroward since vecForward is altered
-    vObject::ApplyRotation(matRot, vecPivot);
+    vObject::ApplyRotation(matRot);
     vec3d vecLook = vecLocation + vecForward;
     vCamera::PointAt(vecLook);
 }

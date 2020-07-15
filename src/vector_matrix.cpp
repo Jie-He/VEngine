@@ -14,6 +14,14 @@ vec3d vecNormalise(vec3d& v){
     return vec3d(v.x / l, v.y / l, v.z / l);
 }
 
+vec3d vecNegative(vec3d& v){
+    v.x = -v.x;
+    v.y = -v.y;
+    v.z = -v.z;
+    // Not w at this point
+    return v;
+}
+
 vec3d matMultiplyVector(mat4x4 &m, vec3d &i){
     vec3d v;
     v.x = i.x * m.m[0][0] + i.y * m.m[1][0] + i.z * m.m[2][0] + i.w * m.m[3][0];
@@ -114,6 +122,44 @@ mat4x4 matMakeRotationZ(float fAngleRad)
     return matrix;
 }
 
+mat4x4 matMakeScale(float fScale, vec3d& vecPivot){
+    mat4x4 matrix;
+    matrix.m[0][0] = fScale;
+    matrix.m[1][1] = fScale;
+    matrix.m[2][2] = fScale;
+    matrix.m[3][3] = 1.0f; // might be safe to keep this as 1
+    vec3d vecToZero(0.0f, 0.0f, 0.0f);
+    vecToZero = vecToZero - vecPivot;
+
+    // Translation matrix to and from the zero vector
+    mat4x4 matPivotP = matMakeTranslate( vecPivot  );
+    mat4x4 matPivotS = matMakeTranslate( vecToZero );
+
+    // Weird. should be matP * matRot * matS
+	// But matS * matRot * matP works, maybe its bcs hot mat * vec is done
+    matrix = matMultiplyMatrix(matrix,     matPivotP);
+    matrix = matMultiplyMatrix(matPivotS,  matrix);
+
+    return matrix;
+}
+
+mat4x4 matMakeRotationPivot(mat4x4& matRot, vec3d& vecPivot){
+    mat4x4 matrix;
+    vec3d vecToZero(0.0f, 0.0f, 0.0f);
+    vecToZero = vecToZero - vecPivot;
+
+    // Translation matrix to and from the zero vector
+    mat4x4 matPivotP = matMakeTranslate( vecPivot  );
+    mat4x4 matPivotS = matMakeTranslate( vecToZero );
+
+    // Weird. should be matP * matRot * matS
+	// But matS * matRot * matP works, maybe its bcs hot mat * vec is done
+    matrix = matMultiplyMatrix(matRot,     matPivotP);
+    matrix = matMultiplyMatrix(matPivotS,  matrix);
+
+    return matrix;
+}
+
 mat4x4 matMakeRotationAxis(vec3d& vecLoc, vec3d& vecAxe, float fAngleRad){
     mat4x4 matrix = matIdentity();
     vec3d vecAxis = vecNormalise(vecAxe);
@@ -136,8 +182,10 @@ mat4x4 matMakeRotationAxis(vec3d& vecLoc, vec3d& vecAxe, float fAngleRad){
     matrix.m[0][3] = (a*(v2 + w2) - u*(b*v+c*w))*nc + (b*w-c*v)*so;
     matrix.m[1][3] = (b*(u2 + w2) - v*(a*u+c*w))*nc + (c*u-a*w)*so;
     matrix.m[2][3] = (c*(u2 + v2) - w*(a*u+b*v))*nc + (a*v-b*u)*so;
+    
     return matrix;
 }
+
 
 mat4x4 matMultiplyMatrix(mat4x4 &m1, mat4x4 &m2)
 {
@@ -151,7 +199,6 @@ mat4x4 matMultiplyMatrix(mat4x4 &m1, mat4x4 &m2)
 mat4x4 matMakeProjection(float fFovRad, float fAspectRatio, float fNear, float fFar){
     mat4x4 matProj;
     matProj.m[0][0] = fAspectRatio * fFovRad;
-    std::cout << fAspectRatio * fFovRad << std::endl;
     matProj.m[1][1] = fFovRad;
     matProj.m[2][2] = fFar / (fFar - fNear);
     matProj.m[3][2] = (-fFar * fNear) / (fFar - fNear);

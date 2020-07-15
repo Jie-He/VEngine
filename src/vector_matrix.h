@@ -116,7 +116,7 @@ struct mat4x4{
 // Operation on vector
 vec3d vecCrossProduct(vec3d&, vec3d&);
 vec3d vecNormalise(vec3d&);
-
+vec3d vecNegative(vec3d&);
 // Operation on vector && matrix
 vec3d  matMultiplyVector(mat4x4&, vec3d&);
 mat4x4 matIdentity();
@@ -127,6 +127,8 @@ mat4x4 matMakeRotationX(float);
 mat4x4 matMakeRotationY(float);
 mat4x4 matMakeRotationZ(float);
 // Location vector, Axis vector, degree
+mat4x4 matMakeScale(float, vec3d&);
+mat4x4 matMakeRotationPivot(mat4x4&, vec3d&);
 mat4x4 matMakeRotationAxis(vec3d&, vec3d&, float);
 mat4x4 matMultiplyMatrix(mat4x4&, mat4x4&);
 mat4x4 matMakeProjection(float fFovRad, float fAspectRatio, float fNear, float fFar);

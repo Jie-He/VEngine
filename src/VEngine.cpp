@@ -178,11 +178,18 @@ int TriangleClipAgainstPlane(vec3d plane_p, vec3d plane_n, triangle &in_tri, tri
 	}
 
 // Draw a single mesh [RE]
-void VEngine::draw_scene(std::vector<vMesh>& sceMesh){
+void VEngine::draw_scene(vCamera& camMain, std::vector<vMesh>& sceMesh){
     std::vector<triangle> vecTrianglesToRaster;
 
+    // Camera Scale and offset
+    vec3d vecScale(0.5f * (float)camMain.nScreenW, 0.5f * (float)camMain.nScreenH, 1.0f);
+    vec3d vecTrans(camMain.nOffsetX, camMain.nOffsetY, 0.0f);
+    // Temp, translating to the centre of the screen (0,0)
+    vec3d vecTranslate(1.0f + camMain.fOffsetX , 1.0f + camMain.fOffsetY , 0.0f);
+    // Temp set vecLight to camera's location
+    vecLight = camMain.getVecLocation();
     for (vMesh& mh : sceMesh){
-        for (auto& tri : mh.tris){
+        for (auto& tri : mh.getTris()){
             // Normal calculation
             vec3d normal, line1, line2;
             // Get lines from either side of triangle
@@ -221,22 +228,17 @@ void VEngine::draw_scene(std::vector<vMesh>& sceMesh){
                     triProjected.p[1] = matMultiplyVector(camMain.matCamProj, clipped[n].p[1]);
                     triProjected.p[2] = matMultiplyVector(camMain.matCamProj, clipped[n].p[2]);
 
-                    // Temp, translating to the centre of the screen (0,0)
-                    vec3d vecTranslate(1.0f, 1.0f, 0.0f);
                     triTranslate.p[0] = triProjected.p[0] + vecTranslate;
                     triTranslate.p[1] = triProjected.p[1] + vecTranslate;
                     triTranslate.p[2] = triProjected.p[2] + vecTranslate;
 
                     // Scale into view
-                    vec3d vecScale(0.5f * (float)SCREEN_WIDTH, 0.5f * (float)SCREEN_HEIGHT, 1.0f);
                     triScale.p[0] = triTranslate.p[0] * vecScale;
                     triScale.p[1] = triTranslate.p[1] * vecScale;
                     triScale.p[2] = triTranslate.p[2] * vecScale;
                     triScale.colour = tri.colour;
                     
                     vecTrianglesToRaster.push_back(triScale);
-                    //fill_triangle(triScale, ls, ls, ls);
-                    //draw_triangle(triScale);
                 }
             }
         }
@@ -273,14 +275,13 @@ void VEngine::draw_scene(std::vector<vMesh>& sceMesh){
                     // Clip it against a plane. We only need to test each 
                     // subsequent plane, against subsequent new triangles
                     // as all triangles after a plane clip are guaranteed
-                    // to lie on the inside of the plane. I like how this
-                    // comment is almost completely and utterly justified
+                    // to lie on the inside of the plane. 
                     switch (p)
                     {
-                    case 0:	nTrisToAdd = TriangleClipAgainstPlane({ 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, test, clipped[0], clipped[1]); break;
-                    case 1:	nTrisToAdd = TriangleClipAgainstPlane({ 0.0f, (float)(SCREEN_HEIGHT) - 1, 0.0f }, { 0.0f, -1.0f, 0.0f }, test, clipped[0], clipped[1]); break;
-                    case 2:	nTrisToAdd = TriangleClipAgainstPlane({ 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, test, clipped[0], clipped[1]); break;
-                    case 3:	nTrisToAdd = TriangleClipAgainstPlane({ (float)(SCREEN_WIDTH - 1), 0.0f, 0.0f }, { -1.0f, 0.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+                    case 0:	nTrisToAdd = TriangleClipAgainstPlane({ 0.0f, (float)(camMain.nOffsetY + 1), 0.0f }, { 0.0f, 1.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+                    case 1:	nTrisToAdd = TriangleClipAgainstPlane({ 0.0f, (float)(camMain.nScreenH + camMain.nOffsetY - 1), 0.0f }, { 0.0f, -1.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+                    case 2:	nTrisToAdd = TriangleClipAgainstPlane({ (float)(camMain.nOffsetX + 1), 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+                    case 3:	nTrisToAdd = TriangleClipAgainstPlane({ (float)(camMain.nScreenW + camMain.nOffsetX - 1), 0.0f, 0.0f }, { -1.0f, 0.0f, 0.0f }, test, clipped[0], clipped[1]); break;
                     }
 
                     // Clipping may yield a variable number of triangles, so
@@ -294,10 +295,15 @@ void VEngine::draw_scene(std::vector<vMesh>& sceMesh){
 
             for (auto &t : listTriangles){
                 fill_triangle(t, t.colour);   
-                //draw_triangle(t);
+                draw_triangle(t);
             }
         } 
     }
+
+    #ifdef OPENCV
+    cv::rectangle(canvas, cv::Rect(cv::Point(camMain.nOffsetX, camMain.nOffsetY), cv::Point(camMain.nScreenW + camMain.nOffsetX, camMain.nScreenH + camMain.nOffsetY)), cv::Scalar(0,0,255), 3);
+    #endif
+
 }
 
 // Drawing a triangle
@@ -336,12 +342,32 @@ void VEngine::fill_triangle(triangle& tri, vec3d& colour){
     int R(colour.x), G(colour.y), B(colour.z);
     #ifdef OPENCV
     cv::Vec3b tColour = cv::Vec3b(B, G, R);
+     // Can use the default (faster) but no depth control...
+    std::vector<cv::Point> pts = {  cv::Point(tri.p[0].x, tri.p[0].y),
+                                    cv::Point(tri.p[1].x, tri.p[1].y),
+                                    cv::Point(tri.p[2].x, tri.p[2].y)};
+    cv::fillPoly(canvas, pts, cv::Scalar(B, G, R));
     #endif
 
     #ifdef PSVITA
     unsigned int tColour = RGBA8((int)colour.x, (int)colour.y, (int)colour.z, 0xFF);
+
+    vita2d_color_vertex *vertices = (vita2d_color_vertex *)vita2d_pool_memalign(
+			3 * sizeof(vita2d_color_vertex),
+			sizeof(vita2d_color_vertex));
+
+    for (int i = 0; i < 3; i++){
+        vertices[i].x = tri.p[i].x;
+        vertices[i].y = tri.p[i].y;
+        vertices[i].z = -tri.p[i].z;
+        vertices[i].color = tColour;
+    }
+
+    // Draw the array/ (Nice that Vita2D already takes depth into account)
+    vita2d_draw_array(SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, vertices, 3);
     #endif
     
+    /**
     // Test drawing line
     int ax = tri.p[0].x;
     int ay = tri.p[0].y;
@@ -397,11 +423,5 @@ void VEngine::fill_triangle(triangle& tri, vec3d& colour){
             #endif
             nnbx += dbax * skiq; nnby += dbay * skiq;
         }
-    } 
-
-    // Can use the default (faster) but no depth control...
-    //std::vector<cv::Point> pts = {  cv::Point(tri.p[0].x, tri.p[0].y),
-    //                                cv::Point(tri.p[1].x, tri.p[1].y),
-    //                                cv::Point(tri.p[2].x, tri.p[2].y)};
-    //cv::fillPoly(canvas, pts, cv::Scalar(B, G, R)); 
+    } **/ 
 }

@@ -80,8 +80,6 @@ class VEngine{
         const int SCREEN_HEIGHT= 544;
 
         // World information
-        // Camera
-        vCamera camMain;
         // Lighting
         vec3d vecLight;
         // OPENCV: canvas, color, input
@@ -91,14 +89,6 @@ class VEngine{
         char keypress;
         #endif
         // VITA CTRL
-
-        // Perspective stuff
-        float fNear         = 0.1f;
-        float fFar          = 1000.0f;
-        float fFov          = 90.0f;
-        float fAspectRatio  = ((float)SCREEN_HEIGHT/(float)SCREEN_WIDTH);
-        float fFovRad       = 1.0f / tanf( (fFov * 0.5f / 180.0f * 3.14159f) );
-
         // Could pass: [RE]
         //  + world colour, 
         VEngine(){
@@ -110,16 +100,6 @@ class VEngine{
             font = vita2d_load_font_mem(basicfont, basicfont_size);
             sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
             #endif
-
-            // init the mat_proj values [RE]
-            mat4x4 matProjection;
-            matProjection.m[0][0] = fAspectRatio * fFovRad;
-            matProjection.m[1][1] = fFovRad;
-            matProjection.m[2][2] = fFar / (fFar - fNear);
-            matProjection.m[3][2] = (-fFar * fNear) / (fFar - fNear);
-            matProjection.m[2][3] = 1.0f;
-            matProjection.m[3][3] = 0.0f;
-            camMain.setMatProj(matProjection);
 
             // Set light location
             vecLight = vec3d(0.0f, -10.0f, 0.0f);
@@ -144,7 +124,7 @@ class VEngine{
         // Drawing stuff
         void draw_triangle(triangle&);
         void fill_triangle(triangle&, vec3d&);
-        void draw_scene(std::vector<vMesh>&);
+        void draw_scene(vCamera&, std::vector<vMesh>&);
     private:
         // A while loop basically
         // maybe do some extra stuff like taking input
