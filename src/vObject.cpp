@@ -21,7 +21,8 @@ void vObject::ApplyRotation(mat4x4& matRot, vec3d& vecPivot){
     matPivot = makeRotationPivot(matRot, vecPivot);
 
     // Incase its not rotation at object location
-    vecLocation = matMultiplyVector(matPivot, vecLocation);  
+    vecLocation = matMultiplyVector(matPivot, vecLocation); 
+    vec3d vecTarget = vecLocation + vecForward;
 }
 
 void vObject::ApplyScaling(mat4x4& matScale, vec3d& vecPivot){
@@ -31,7 +32,7 @@ void vObject::ApplyScaling(mat4x4& matScale, vec3d& vecPivot){
 
 void vObject::PointAt(vec3d& vecTarget){
     // Update new forward direction
-    if (vecTarget != vecLocation){
+    //if (vecTarget != vecLocation){
         vecForward = vecTarget - vecLocation;
         vecForward = vecNormalise(vecForward);
 
@@ -43,7 +44,7 @@ void vObject::PointAt(vec3d& vecTarget){
 
         // New right direction
         vecHorizontal = vecCrossProduct(vecVertical, vecForward);
-    }
+    //}
 }
 
 mat4x4 vObject::makeRotationPivot(mat4x4& matRot, vec3d& vecPivot){

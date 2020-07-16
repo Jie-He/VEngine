@@ -38,7 +38,6 @@ void VEngine::ve_clock(){
         #ifdef PSVITA       
             vita2d_start_drawing();
             vita2d_clear_screen();
-
             // Get controller input
             sceCtrlPeekBufferPositive(0, &ctrl, 1);
 
@@ -183,11 +182,29 @@ void VEngine::draw_scene(vCamera& camMain, std::vector<vMesh>& sceMesh){
 
     // Camera Scale and offset
     vec3d vecScale(0.5f * (float)camMain.nScreenW, 0.5f * (float)camMain.nScreenH, 1.0f);
-    vec3d vecTrans(camMain.nOffsetX, camMain.nOffsetY, 0.0f);
+    vec3d vecTrans(camMain.nScreenOX, camMain.nScreenOY, 0.0f);
     // Temp, translating to the centre of the screen (0,0)
     vec3d vecTranslate(1.0f + camMain.fOffsetX , 1.0f + camMain.fOffsetY , 0.0f);
     // Temp set vecLight to camera's location
     vecLight = camMain.getVecLocation();
+
+    // Draw the cam border
+    #ifdef OPENCV
+    //cv::rectangle(canvas, cv::Rect(cv::Point(camMain.nScreenOX, camMain.nScreenOY), cv::Point(camMain.nScreenW + camMain.nScreenOX, camMain.nScreenH + camMain.nScreenOY)), cv::Scalar(0,0,255), 3);
+    cv::line(canvas, cv::Point(camMain.nScreenOX, camMain.nScreenOY), cv::Point(camMain.nScreenOX + camMain.nScreenW, camMain.nScreenOY), cv::Scalar(255,0,0), 2);
+    cv::line(canvas, cv::Point(camMain.nScreenOX, camMain.nScreenOY), cv::Point( camMain.nScreenOX, camMain.nScreenOY + camMain.nScreenH), cv::Scalar(255,0,0), 2);
+    cv::line(canvas, cv::Point(camMain.nScreenOX+camMain.nScreenW, camMain.nScreenOY), cv::Point(camMain.nScreenOX + camMain.nScreenW, camMain.nScreenOY + camMain.nScreenH), cv::Scalar(255,0,0), 2);
+    cv::line(canvas, cv::Point(camMain.nScreenOX, camMain.nScreenOY+camMain.nScreenH), cv::Point(camMain.nScreenOX + camMain.nScreenW, camMain.nScreenOY + camMain.nScreenH), cv::Scalar(255,0,0), 2);
+    
+    #endif
+    #ifdef PSVITA
+    //vita2d_draw_rectangle(camMain.nScreenOX, camMain.nScreenOY, camMain.nScreenW, camMain.nScreenH, AMBER);
+    vita2d_draw_line(camMain.nScreenOX, camMain.nScreenOY, camMain.nScreenOX + camMain.nScreenW, camMain.nScreenOY, AMBER);
+    vita2d_draw_line(camMain.nScreenOX, camMain.nScreenOY, camMain.nScreenOX, camMain.nScreenOY + camMain.nScreenH, AMBER);
+    vita2d_draw_line(camMain.nScreenOX+camMain.nScreenW, camMain.nScreenOY, camMain.nScreenOX + camMain.nScreenW, camMain.nScreenOY + camMain.nScreenH, AMBER);
+    vita2d_draw_line(camMain.nScreenOX, camMain.nScreenOY+camMain.nScreenH, camMain.nScreenOX + camMain.nScreenW, camMain.nScreenOY + camMain.nScreenH, AMBER);
+    #endif
+
     for (vMesh& mh : sceMesh){
         for (auto& tri : mh.getTris()){
             // Normal calculation
@@ -246,7 +263,7 @@ void VEngine::draw_scene(vCamera& camMain, std::vector<vMesh>& sceMesh){
 
         // sort the faces by distance, :. Painter's Method
         // Change to Depth buffer later
-        #ifdef OPENCV
+        //#ifdef OPENCV
         std::sort(vecTrianglesToRaster.begin(), vecTrianglesToRaster.end(),
             [](triangle &t1, triangle &t2){
                 float z1 = (t1.p[0].z + t1.p[1].z + t1.p[2].z) / 3.0f;
@@ -254,7 +271,7 @@ void VEngine::draw_scene(vCamera& camMain, std::vector<vMesh>& sceMesh){
                
                 return z1 > z2;
             });
-        #endif
+        //#endif
 
         for (auto &triToRaster : vecTrianglesToRaster){
             // Clip triangles against all four screen edges, this could yield
@@ -280,10 +297,10 @@ void VEngine::draw_scene(vCamera& camMain, std::vector<vMesh>& sceMesh){
                     // to lie on the inside of the plane. 
                     switch (p)
                     {
-                    case 0:	nTrisToAdd = TriangleClipAgainstPlane({ 0.0f, (float)(camMain.nOffsetY + 1), 0.0f }, { 0.0f, 1.0f, 0.0f }, test, clipped[0], clipped[1]); break;
-                    case 1:	nTrisToAdd = TriangleClipAgainstPlane({ 0.0f, (float)(camMain.nScreenH + camMain.nOffsetY - 1), 0.0f }, { 0.0f, -1.0f, 0.0f }, test, clipped[0], clipped[1]); break;
-                    case 2:	nTrisToAdd = TriangleClipAgainstPlane({ (float)(camMain.nOffsetX + 1), 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, test, clipped[0], clipped[1]); break;
-                    case 3:	nTrisToAdd = TriangleClipAgainstPlane({ (float)(camMain.nScreenW + camMain.nOffsetX - 1), 0.0f, 0.0f }, { -1.0f, 0.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+                    case 0:	nTrisToAdd = TriangleClipAgainstPlane({ 0.0f, (float)(camMain.nScreenOY + 1), 0.0f }, { 0.0f, 1.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+                    case 1:	nTrisToAdd = TriangleClipAgainstPlane({ 0.0f, (float)(camMain.nScreenH + camMain.nScreenOY - 1), 0.0f }, { 0.0f, -1.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+                    case 2:	nTrisToAdd = TriangleClipAgainstPlane({ (float)(camMain.nScreenOX + 1), 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+                    case 3:	nTrisToAdd = TriangleClipAgainstPlane({ (float)(camMain.nScreenW + camMain.nScreenOX - 1), 0.0f, 0.0f }, { -1.0f, 0.0f, 0.0f }, test, clipped[0], clipped[1]); break;
                     }
 
                     // Clipping may yield a variable number of triangles, so
@@ -297,18 +314,10 @@ void VEngine::draw_scene(vCamera& camMain, std::vector<vMesh>& sceMesh){
 
             for (auto &t : listTriangles){
                 fill_triangle(t, t.colour);   
-                //draw_triangle(t);
+               // draw_triangle(t);
             }
         } 
     }
-
-    #ifdef OPENCV
-    cv::rectangle(canvas, cv::Rect(cv::Point(camMain.nOffsetX, camMain.nOffsetY), cv::Point(camMain.nScreenW + camMain.nOffsetX, camMain.nScreenH + camMain.nOffsetY)), cv::Scalar(0,0,255), 3);
-    #endif
-    #ifdef PSVITA
-    vita2d_draw_rectangle(camMain.nOffsetX, camMain.nOffsetY, camMain.nScreenW, camMain.nScreenH, AMBER);
-    #endif
-
 }
 
 // Drawing a triangle
@@ -316,14 +325,15 @@ void VEngine::draw_triangle(triangle& tri){
     // draw the three lines
     
     #ifdef PSVITA
+    unsigned int tColour = RGBA8((int)tri.colour.x, (int)tri.colour.y, (int)tri.colour.z, 0xFF);
     vita2d_draw_line(tri.p[0].x, tri.p[0].y,
-					 tri.p[1].x, tri.p[1].y, CRIMSON);
+					 tri.p[1].x, tri.p[1].y, tColour);
     
     vita2d_draw_line(tri.p[0].x, tri.p[0].y,
-					 tri.p[2].x, tri.p[2].y, BLUE);
+					 tri.p[2].x, tri.p[2].y, tColour);
     
     vita2d_draw_line(tri.p[2].x, tri.p[2].y,
-					 tri.p[1].x, tri.p[1].y, SEAGREEN);
+					 tri.p[1].x, tri.p[1].y, tColour);
     #endif
 
     // OPENCV DRAW TRIANGLE
@@ -355,8 +365,8 @@ void VEngine::fill_triangle(triangle& tri, vec3d& colour){
     #endif
 
     #ifdef PSVITA
-    unsigned int tColour = RGBA8((int)colour.x, (int)colour.y, (int)colour.z, 0xFF);
-
+    unsigned int tColour = RGBA8((int)tri.colour.x, (int)tri.colour.y, (int)tri.colour.z, 0xFF);
+    
     vita2d_color_vertex *vertices = (vita2d_color_vertex *)vita2d_pool_memalign(
 			3 * sizeof(vita2d_color_vertex),
 			sizeof(vita2d_color_vertex));
@@ -364,7 +374,7 @@ void VEngine::fill_triangle(triangle& tri, vec3d& colour){
     for (int i = 0; i < 3; i++){
         vertices[i].x = tri.p[i].x;
         vertices[i].y = tri.p[i].y;
-        vertices[i].z = -tri.p[i].z;
+        vertices[i].z = 0.5f;
         vertices[i].color = tColour;
     }
 

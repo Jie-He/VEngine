@@ -11,6 +11,7 @@ class mVEngine : public VEngine{
 	void onCreate() override{
 		
 		vMesh meshCube;
+		vMesh plane;
 
 		// Loading the basic cube
 		#ifdef OPENCV
@@ -126,7 +127,7 @@ class mVEngine : public VEngine{
 			
 			// Up down rotation (inverted)
 			if (abs(ctrl.ry - 128) > 50){
-				mat4x4 matPitchRot = matMakeRotationAxis(camMain.getVecVertical(), (ctrl.ry - 128) / 50.0f * fElapsedTime );
+				mat4x4 matPitchRot = matMakeRotationAxis(camMain.getVecHorizontal(), (ctrl.ry - 128) / 50.0f * fElapsedTime );
 				matRot = matMultiplyMatrix(matPitchRot, matRot);
 			}
 		#endif
@@ -138,9 +139,9 @@ class mVEngine : public VEngine{
 
 
 		// Update cam 2
-		vecTrans = vecNegative(vecTrans);
-		camMai2.ApplyTranslation(vecTrans);
-		camMai2.ApplyRotation(matRot, camMai2.getVecLocation());
+		//vecTrans = vecNegative(vecTrans);
+		//camMai2.ApplyTranslation(vecTrans);
+		//camMai2.ApplyRotation(matRot, camMai2.getVecLocation());
 
 		draw_scene(camMain, scene);
 		draw_scene(camMai2, scene);

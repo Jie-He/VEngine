@@ -12,14 +12,14 @@ class vCamera : public vObject{
 
     public:
         int nScreenW, nScreenH;
-        int nOffsetX, nOffsetY;
+        int nScreenOX, nScreenOY;
         float fOffsetX;
         float fOffsetY;
         mat4x4 matCamView; // Camera viewing matrix
         mat4x4 matCamProj; // Camera projection matrix
 
         vCamera(int nSw, int nSh, int nfx=0, int nfy=0, float fN=0.1f, float fF=1000.0f, float fV=90.0f)
-                : nScreenW(nSw), nScreenH(nSh), nOffsetX(nfx), nOffsetY(nfy), fNear(fN), fFar(fF), fFov(fV){
+                : nScreenW(nSw), nScreenH(nSh), nScreenOX(nfx), nScreenOY(nfy), fNear(fN), fFar(fF), fFov(fV){
             vObject();
             fAspectRatio = ((float)nScreenH/(float)nScreenW);
             fFovRad = 1.0f / tanf( (fV * 0.5f / 180.0f * 3.14159f));
