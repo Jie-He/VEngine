@@ -16,8 +16,8 @@ class vMesh : public vObject{
         };
 
         bool LoadFromObjectFile(std::string sFilename);
-        void ApplyRotation(mat4x4& matRot);
-        void ApplyScaling(mat4x4& matScale);
+        void ApplyRotation(mat4x4& matRot, vec3d& vecPivot);
+        void ApplyScaling(mat4x4& matScale,vec3d& vecPivot);
         void ApplyTranslation(vec3d& vecTrans);
         vec3d getBaseColour(){ return baseColour; };
         std::vector<triangle>& getTris(){ return tris; };

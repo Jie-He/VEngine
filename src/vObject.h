@@ -22,8 +22,13 @@ class vObject{
         vec3d vecForward;
         vec3d vecVertical;
         vec3d vecHorizontal;
+
+        // Calculate rotational matrix wrt pivot
+        mat4x4 matPivot;
+
         // Active status. if not consider this object deleted
         bool bActive;
+        mat4x4 makeRotationPivot(mat4x4& matRot, vec3d& vecPivot);
     public:
         vObject(){
             // set the default vectors to axis
@@ -39,10 +44,10 @@ class vObject{
         void ApplyTranslation(vec3d& vecTrans);
         // Rotate the directional vectors around a pivot.
         // Set pivot to object location for self rotation.
-        void ApplyRotation(mat4x4& matRot);
+        void ApplyRotation(mat4x4& matRot, vec3d& vecPivot);
         // Need to apply to vecLocation as it might be
         // Scaling from a pivot point
-        void ApplyScaling(mat4x4& matScale);
+        void ApplyScaling(mat4x4& matScale, vec3d& vecPivot);
         // Given a vector as a target.
         // All the directional vectors will be updated so that
         // vecForward points at the given vector

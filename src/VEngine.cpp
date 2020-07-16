@@ -246,6 +246,7 @@ void VEngine::draw_scene(vCamera& camMain, std::vector<vMesh>& sceMesh){
 
         // sort the faces by distance, :. Painter's Method
         // Change to Depth buffer later
+        #ifdef OPENCV
         std::sort(vecTrianglesToRaster.begin(), vecTrianglesToRaster.end(),
             [](triangle &t1, triangle &t2){
                 float z1 = (t1.p[0].z + t1.p[1].z + t1.p[2].z) / 3.0f;
@@ -253,6 +254,7 @@ void VEngine::draw_scene(vCamera& camMain, std::vector<vMesh>& sceMesh){
                
                 return z1 > z2;
             });
+        #endif
 
         for (auto &triToRaster : vecTrianglesToRaster){
             // Clip triangles against all four screen edges, this could yield

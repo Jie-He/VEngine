@@ -11,28 +11,22 @@ void vObject::ApplyTranslation(vec3d& vecTrans){
     //vecHorizontal+= vecTrans;
 }
 
-void vObject::ApplyRotation(mat4x4& matRot){
+void vObject::ApplyRotation(mat4x4& matRot, vec3d& vecPivot){
     // Update all directional vector
     // the directions are always rotating about zero  
-    // Need to know where this thing is pivoting to.... sad
-    vecForward = vecForward + vecLocation;
-    vecVertical= vecVertical+ vecLocation;
-    vecHorizontal= vecHorizontal + vecLocation; 
     vecForward    = matMultiplyVector(matRot, vecForward   );
     vecVertical   = matMultiplyVector(matRot, vecVertical  );
     vecHorizontal = matMultiplyVector(matRot, vecHorizontal);
-    // Normalise it?
-    vecForward = vecForward - vecLocation;
-    vecHorizontal = vecHorizontal - vecLocation;
-    vecVertical = vecVertical - vecLocation;
 
+    matPivot = makeRotationPivot(matRot, vecPivot);
 
     // Incase its not rotation at object location
-    vecLocation = matMultiplyVector(matRot, vecLocation);  
+    vecLocation = matMultiplyVector(matPivot, vecLocation);  
 }
 
-void vObject::ApplyScaling(mat4x4& matScale){
-    vecLocation = matMultiplyVector(matScale, vecLocation);
+void vObject::ApplyScaling(mat4x4& matScale, vec3d& vecPivot){
+    matPivot = makeRotationPivot(matScale, vecPivot);
+    vecLocation = matMultiplyVector(matPivot, vecLocation);
 }
 
 void vObject::PointAt(vec3d& vecTarget){
@@ -50,4 +44,20 @@ void vObject::PointAt(vec3d& vecTarget){
         // New right direction
         vecHorizontal = vecCrossProduct(vecVertical, vecForward);
     }
+}
+
+mat4x4 vObject::makeRotationPivot(mat4x4& matRot, vec3d& vecPivot){
+    mat4x4 matrix;
+    vec3d vecToZero = vecNegative(vecPivot);
+
+    // Translation matrix to and from the zero vector
+    mat4x4 matPivotP = matMakeTranslate( vecPivot  );
+    mat4x4 matPivotS = matMakeTranslate( vecToZero );
+
+    // Weird. should be matP * matRot * matS
+	// But matS * matRot * matP works, maybe its bcs hot mat * vec is done
+    matrix = matMultiplyMatrix(matRot,     matPivotP);
+    matrix = matMultiplyMatrix(matPivotS,  matrix);
+
+    return matrix;
 }

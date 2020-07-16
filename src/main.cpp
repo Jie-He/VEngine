@@ -29,19 +29,19 @@ class mVEngine : public VEngine{
 		scene.push_back(meshCube);
 		
 		vec3d vecTrans( 0.0f, 0.0f, 5.0f );
-		mat4x4 matScale = matMakeScale(0.25f, vecTrans);
+		mat4x4 matScale = matMakeScale(0.25f);
 		scene[0].ApplyTranslation(vecTrans);
-		scene[0].ApplyScaling(matScale);
+		scene[0].ApplyScaling(matScale, scene[0].getVecLocation());
 		
 		vecTrans = vec3d( 0.0f, 0.0f, 5.0f);
-		matScale = matMakeScale(0.5f, vecTrans);
+		matScale = matMakeScale(0.5f);
 		scene[1].ApplyTranslation(vecTrans);
-		scene[1].ApplyScaling(matScale);
+		scene[1].ApplyScaling(matScale, scene[1].getVecLocation());
 
 		vecTrans = vec3d(0.0f, 0.0f, 5.0f);
-		matScale = matMakeScale(0.75f, vecTrans);
+		matScale = matMakeScale(0.75f);
 		scene[2].ApplyTranslation(vecTrans);
-		scene[2].ApplyScaling(matScale);
+		scene[2].ApplyScaling(matScale, scene[1].getVecLocation());
 
 		vecTrans = vec3d(0.0f, 0.0f, 2.0f);
 		camMain.ApplyTranslation(vecTrans);
@@ -61,11 +61,9 @@ class mVEngine : public VEngine{
 		mat4x4 matRotY = matMakeRotationY( rad/3 );
 		mat4x4 matRot  = matMultiplyMatrix(matRotZ, matRotX);
 
-		matRot = matMakeRotationPivot(matRot, scene[0].getVecLocation());
-		scene[0].ApplyRotation(matRot);
-		matRot = matMultiplyMatrix(matRotY, matRotX);
-		matRot = matMakeRotationPivot(matRot, scene[0].getVecLocation());
-		scene[1].ApplyRotation(matRot);
+		scene[0].ApplyRotation(matRot, scene[0].getVecLocation());
+		//matRot = matMultiplyMatrix(matRotY, matRotX);
+		//scene[1].ApplyRotation(matRot, scene[1].getVecLocation());
 		//matRot = matMultiplyMatrix(matRotZ, matRotY);
 		//matRot = matMakeRotationPivot(matRotY, scene[0].getVecLocation());
 		//scene[2].ApplyRotation(matRot);
@@ -85,23 +83,23 @@ class mVEngine : public VEngine{
 			if (keypress == 90 || keypress == 122) vecTrans += (camMain.getVecForward() * 8.0f) * fElapsedTime;
 			if (keypress == 88 || keypress == 120) vecTrans -= (camMain.getVecForward() * 8.0f) * fElapsedTime;
 			
-			// QE for Y axis rotation
+			// QE for Vertical axis rotation (look left and right)
 			if (keypress == 81 || keypress == 113) {
-				mat4x4 matYawRot = matMakeRotationY( 2.0f * fElapsedTime);
+				mat4x4 matYawRot = matMakeRotationAxis(camMain.getVecVertical(), 2.0f * fElapsedTime);
 				matRot = matYawRot;
 			}
 			if (keypress == 69 || keypress == 101){ 
-				mat4x4 matYawRot = matMakeRotationY(-2.0f * fElapsedTime);
+				mat4x4 matYawRot = matMakeRotationAxis(camMain.getVecVertical(), -2.0f * fElapsedTime);
 				matRot = matYawRot;
 			}
-			// IK for Pitch, x axis rotation
+			// IK for Pitch, Horizontal axis rotation (up and down)
 			if (keypress == 73 || keypress == 105){ 
-				mat4x4 matPitchRot = matMakeRotationX( 2.0f * fElapsedTime);
+				mat4x4 matPitchRot = matMakeRotationAxis(camMain.getVecHorizontal(), 2.0f * fElapsedTime);
 				matRot = matMultiplyMatrix(matPitchRot, matRot);
 			}
 			
 			if (keypress == 107 || keypress == 75) {
-				mat4x4 matPitchRot = matMakeRotationX(-2.0f * fElapsedTime);
+				mat4x4 matPitchRot = matMakeRotationAxis(camMain.getVecHorizontal(), -2.0f * fElapsedTime);
 				matRot = matMultiplyMatrix(matPitchRot, matRot);
 			}
 		#endif
@@ -122,24 +120,27 @@ class mVEngine : public VEngine{
 			// Introducing 50 as deadzone for the stick (bcs my vita's sticks are broke af)
 			// Left right rotation
 			if (abs(ctrl.rx - 128) > 50){
-				mat4x4 matYawRot = matMakeRotationY( (128 -ctrl.rx) / 50.0f * fElapsedTime );
+				mat4x4 matYawRot = matMakeRotationAxis(camMain.getVecVertical(), (128 -ctrl.rx) / 50.0f * fElapsedTime );
 				matRot = matMultiplyMatrix(matYawRot, matRot);
 			}
 			
 			// Up down rotation (inverted)
 			if (abs(ctrl.ry - 128) > 50){
-				mat4x4 matPitchRot = matMakeRotationX( (ctrl.ry - 128) / 50.0f * fElapsedTime );
+				mat4x4 matPitchRot = matMakeRotationAxis(camMain.getVecVertical(), (ctrl.ry - 128) / 50.0f * fElapsedTime );
 				matRot = matMultiplyMatrix(matPitchRot, matRot);
 			}
 		#endif
-		mat4x4 atPivot = matMakeRotationPivot(matRot, camMain.getVecLocation());
 		camMain.ApplyTranslation(vecTrans);
-		camMain.ApplyRotation(atPivot);
+		camMain.ApplyRotation(matRot, camMain.getVecLocation());
+
+		// make the outter frame follow camera's rotation
+		scene[2].ApplyRotation(matRot, scene[2].getVecLocation());
+
+
 		// Update cam 2
 		vecTrans = vecNegative(vecTrans);
 		camMai2.ApplyTranslation(vecTrans);
-		atPivot = matMakeRotationPivot(matRot, camMai2.getVecLocation());
-		camMai2.ApplyRotation(atPivot);
+		camMai2.ApplyRotation(matRot, camMai2.getVecLocation());
 
 		draw_scene(camMain, scene);
 		draw_scene(camMai2, scene);

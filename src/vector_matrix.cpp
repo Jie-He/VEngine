@@ -123,51 +123,22 @@ mat4x4 matMakeRotationZ(float fAngleRad)
     return matrix;
 }
 
-mat4x4 matMakeScale(float fScale, vec3d& vecPivot){
+mat4x4 matMakeScale(float fScale){
     mat4x4 matrix;
     matrix.m[0][0] = fScale;
     matrix.m[1][1] = fScale;
     matrix.m[2][2] = fScale;
     matrix.m[3][3] = 1.0f; // might be safe to keep this as 1
-    vec3d vecToZero(0.0f, 0.0f, 0.0f);
-    vecToZero = vecToZero - vecPivot;
-
-    // Translation matrix to and from the zero vector
-    mat4x4 matPivotP = matMakeTranslate( vecPivot  );
-    mat4x4 matPivotS = matMakeTranslate( vecToZero );
-
-    // Weird. should be matP * matRot * matS
-	// But matS * matRot * matP works, maybe its bcs hot mat * vec is done
-    matrix = matMultiplyMatrix(matrix,     matPivotP);
-    matrix = matMultiplyMatrix(matPivotS,  matrix);
 
     return matrix;
 }
 
-mat4x4 matMakeRotationPivot(mat4x4& matRot, vec3d& vecPivot){
-    mat4x4 matrix;
-    vec3d vecToZero(0.0f, 0.0f, 0.0f);
-    vecToZero = vecToZero - vecPivot;
-
-    // Translation matrix to and from the zero vector
-    mat4x4 matPivotP = matMakeTranslate( vecPivot  );
-    mat4x4 matPivotS = matMakeTranslate( vecToZero );
-
-    // Weird. should be matP * matRot * matS
-	// But matS * matRot * matP works, maybe its bcs hot mat * vec is done
-    matrix = matMultiplyMatrix(matRot,     matPivotP);
-    matrix = matMultiplyMatrix(matPivotS,  matrix);
-
-    return matrix;
-}
-
-mat4x4 matMakeRotationAxis(vec3d& vecLoc, vec3d& vecAxe, float fAngleRad){
+mat4x4 matMakeRotationAxis(vec3d& vecAxe, float fAngleRad){
     mat4x4 matrix = matIdentity();
     vec3d vecAxis = vecNormalise(vecAxe);
 
     // Preparing... 
     float u(vecAxis.x), v(vecAxis.y), w(vecAxis.z);
-    float a( vecLoc.x), b( vecLoc.y), c( vecLoc.z);
 
     float u2 = u*u;
     float v2 = v*v;
@@ -180,13 +151,9 @@ mat4x4 matMakeRotationAxis(vec3d& vecLoc, vec3d& vecAxe, float fAngleRad){
     matrix.m[0][0] = u2+(v2+w2)*co;   matrix.m[1][0] = u*v*nc+w*so;     matrix.m[2][0] = u*w*nc-v*so;
     matrix.m[0][1] = u*v*nc-w*so;     matrix.m[1][1] = v2+(u2+w2)*co;   matrix.m[2][1] = v*w*nc+u*so;
     matrix.m[0][2] = u*w*nc+v*so;     matrix.m[1][2] = v*w*nc-u*so;     matrix.m[2][2] = w2+(u2+v2)*co;
-    matrix.m[0][3] = (a*(v2 + w2) - u*(b*v+c*w))*nc + (b*w-c*v)*so;
-    matrix.m[1][3] = (b*(u2 + w2) - v*(a*u+c*w))*nc + (c*u-a*w)*so;
-    matrix.m[2][3] = (c*(u2 + v2) - w*(a*u+b*v))*nc + (a*v-b*u)*so;
     
     return matrix;
 }
-
 
 mat4x4 matMultiplyMatrix(mat4x4 &m1, mat4x4 &m2)
 {

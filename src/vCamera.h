@@ -31,7 +31,7 @@ class vCamera : public vObject{
         };
 
         void setMatProj(mat4x4& matProj){ matCamProj = matProj; };
-        void ApplyRotation(mat4x4& matRot);
+        void ApplyRotation(mat4x4& matRot, vec3d& vecPivot);
         void PointAt(vec3d& vecTarget);
 
 };

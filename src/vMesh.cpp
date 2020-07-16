@@ -48,15 +48,15 @@
     }
     
     // Around a pivot
-    void vMesh::ApplyRotation(mat4x4& matRot){
-        vObject::ApplyRotation(matRot);
+    void vMesh::ApplyRotation(mat4x4& matRot, vec3d& vecPivot){
+        vObject::ApplyRotation(matRot, vecPivot);
         // Update each vertex in the triangle
-        ApplyMatrixOnTris(matRot);
+        ApplyMatrixOnTris(matPivot);
     }
 
-    void vMesh::ApplyScaling(mat4x4& matScale){
-        vObject::ApplyScaling(matScale);
-        ApplyMatrixOnTris(matScale);
+    void vMesh::ApplyScaling(mat4x4& matScale, vec3d& vecPivot){
+        vObject::ApplyScaling(matScale, vecPivot);
+        ApplyMatrixOnTris(matPivot);
     }
 
     void vMesh::ApplyTranslation(vec3d& vecTrans){
