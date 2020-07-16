@@ -250,7 +250,7 @@ void VEngine::draw_scene(vCamera& camMain, std::vector<vMesh>& sceMesh){
             [](triangle &t1, triangle &t2){
                 float z1 = (t1.p[0].z + t1.p[1].z + t1.p[2].z) / 3.0f;
                 float z2 = (t2.p[0].z + t2.p[1].z + t2.p[2].z) / 3.0f;
-                
+               
                 return z1 > z2;
             });
 
@@ -302,6 +302,9 @@ void VEngine::draw_scene(vCamera& camMain, std::vector<vMesh>& sceMesh){
 
     #ifdef OPENCV
     cv::rectangle(canvas, cv::Rect(cv::Point(camMain.nOffsetX, camMain.nOffsetY), cv::Point(camMain.nScreenW + camMain.nOffsetX, camMain.nScreenH + camMain.nOffsetY)), cv::Scalar(0,0,255), 3);
+    #endif
+    #ifdef PSVITA
+    vita2d_draw_rectangle(camMain.nOffsetX, camMain.nOffsetY, camMain.nScreenW, camMain.nScreenH, AMBER);
     #endif
 
 }

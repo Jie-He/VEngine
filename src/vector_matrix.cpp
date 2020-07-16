@@ -15,11 +15,12 @@ vec3d vecNormalise(vec3d& v){
 }
 
 vec3d vecNegative(vec3d& v){
-    v.x = -v.x;
-    v.y = -v.y;
-    v.z = -v.z;
+    vec3d v1;
+    v1.x = -v.x;
+    v1.y = -v.y;
+    v1.z = -v.z;
     // Not w at this point
-    return v;
+    return v1;
 }
 
 vec3d matMultiplyVector(mat4x4 &m, vec3d &i){

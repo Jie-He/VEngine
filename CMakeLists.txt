@@ -100,6 +100,7 @@ elseif(PSVITA)
     
     FILE res/Cube.obj res/Cube.obj
     FILE res/Nier.obj res/Nier.obj
+    FILE res/Frame.obj res/Frame.obj
 
     )
 

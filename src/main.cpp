@@ -14,23 +14,43 @@ class mVEngine : public VEngine{
 
 		// Loading the basic cube
 		#ifdef OPENCV
-	 	meshCube.LoadFromObjectFile("../res/Cube.obj");
+	 	meshCube.LoadFromObjectFile("../res/Frame.obj");
 		#endif
 
 		#ifdef PSVITA
-		meshCube.LoadFromObjectFile("app0:/res/Cube.obj");
+		meshCube.LoadFromObjectFile("app0:/res/Frame.obj");
 		#endif
 
+		meshCube.setColour(255, 0,0);
 		scene.push_back(meshCube);
+		meshCube.setColour(0, 255,0);
+		scene.push_back(meshCube);
+		meshCube.setColour(0, 0, 255);
+		scene.push_back(meshCube);
+		
 		vec3d vecTrans( 0.0f, 0.0f, 5.0f );
+		mat4x4 matScale = matMakeScale(0.25f, vecTrans);
 		scene[0].ApplyTranslation(vecTrans);
-		vecTrans = vec3d(0.0f, 0.0f, -1.0f);
+		scene[0].ApplyScaling(matScale);
+		
+		vecTrans = vec3d( 0.0f, 0.0f, 5.0f);
+		matScale = matMakeScale(0.5f, vecTrans);
+		scene[1].ApplyTranslation(vecTrans);
+		scene[1].ApplyScaling(matScale);
+
+		vecTrans = vec3d(0.0f, 0.0f, 5.0f);
+		matScale = matMakeScale(0.75f, vecTrans);
+		scene[2].ApplyTranslation(vecTrans);
+		scene[2].ApplyScaling(matScale);
+
+		vecTrans = vec3d(0.0f, 0.0f, 2.0f);
 		camMain.ApplyTranslation(vecTrans);
 
-		vecTrans = vec3d(0.0f, 0.0f, 11.0f);
+		vecTrans = vec3d(0.0f, 0.0f, 8.0f);
 		camMai2.ApplyTranslation(vecTrans);
-		vec3d vecNeg = vecNegative(camMai2.getVecForward());
-		camMai2.PointAt(vecNeg);
+		vec3d vecN = vecNegative(camMai2.getVecForward());
+		vecN = camMai2.getVecLocation() + vecN;
+		camMai2.PointAt(vecN);
 	}
 
 	void update (float fElapsedTime) override{
@@ -38,10 +58,17 @@ class mVEngine : public VEngine{
 		float rad = ((3.14159f / 4.0f ) * fElapsedTime);
 		mat4x4 matRotX = matMakeRotationX( rad );
 		mat4x4 matRotZ = matMakeRotationZ( rad/2 );
+		mat4x4 matRotY = matMakeRotationY( rad/3 );
 		mat4x4 matRot  = matMultiplyMatrix(matRotZ, matRotX);
-		matRot = matMakeRotationPivot(matRot, scene[0].getVecLocation());
 
+		matRot = matMakeRotationPivot(matRot, scene[0].getVecLocation());
 		scene[0].ApplyRotation(matRot);
+		matRot = matMultiplyMatrix(matRotY, matRotX);
+		matRot = matMakeRotationPivot(matRot, scene[0].getVecLocation());
+		scene[1].ApplyRotation(matRot);
+		//matRot = matMultiplyMatrix(matRotZ, matRotY);
+		//matRot = matMakeRotationPivot(matRotY, scene[0].getVecLocation());
+		//scene[2].ApplyRotation(matRot);
 
 
 		// Some basic camera control
@@ -60,7 +87,6 @@ class mVEngine : public VEngine{
 			
 			// QE for Y axis rotation
 			if (keypress == 81 || keypress == 113) {
-				//mat4x4 matYawRot = matMakeRotationY( 8.0f * fElapsedTime );
 				mat4x4 matYawRot = matMakeRotationY( 2.0f * fElapsedTime);
 				matRot = matYawRot;
 			}
@@ -106,9 +132,14 @@ class mVEngine : public VEngine{
 				matRot = matMultiplyMatrix(matPitchRot, matRot);
 			}
 		#endif
-
+		mat4x4 atPivot = matMakeRotationPivot(matRot, camMain.getVecLocation());
 		camMain.ApplyTranslation(vecTrans);
-		camMain.ApplyRotation(matRot);
+		camMain.ApplyRotation(atPivot);
+		// Update cam 2
+		vecTrans = vecNegative(vecTrans);
+		camMai2.ApplyTranslation(vecTrans);
+		atPivot = matMakeRotationPivot(matRot, camMai2.getVecLocation());
+		camMai2.ApplyRotation(atPivot);
 
 		draw_scene(camMain, scene);
 		draw_scene(camMai2, scene);
@@ -136,12 +167,12 @@ class mVEngine : public VEngine{
                         cv::FONT_HERSHEY_DUPLEX,
                         0.5, CV_RGB(255, 255, 255), 1);
 		#endif
-		#ifdef PSVITA
-		vita2d_font_draw_text(font, 20, 40, WHITE, 11, buff1);
-		vita2d_font_draw_text(font, 20, 60, WHITE, 11, buff2);
-		vita2d_font_draw_text(font, 20, 80, WHITE, 11, buff3);
-		vita2d_font_draw_text(font, 20,100, WHITE, 11, buff4);
-		#endif
+		//#ifdef PSVITA
+		//vita2d_font_draw_text(font, 20, 40, WHITE, 11, buff1);
+		//vita2d_font_draw_text(font, 20, 60, WHITE, 11, buff2);
+		//vita2d_font_draw_text(font, 20, 80, WHITE, 11, buff3);
+		//vita2d_font_draw_text(font, 20,100, WHITE, 11, buff4);
+		//#endif
 	}
 };
 

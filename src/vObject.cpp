@@ -13,10 +13,19 @@ void vObject::ApplyTranslation(vec3d& vecTrans){
 
 void vObject::ApplyRotation(mat4x4& matRot){
     // Update all directional vector
-    // the directions are always rotating about zero   
+    // the directions are always rotating about zero  
+    // Need to know where this thing is pivoting to.... sad
+    vecForward = vecForward + vecLocation;
+    vecVertical= vecVertical+ vecLocation;
+    vecHorizontal= vecHorizontal + vecLocation; 
     vecForward    = matMultiplyVector(matRot, vecForward   );
     vecVertical   = matMultiplyVector(matRot, vecVertical  );
     vecHorizontal = matMultiplyVector(matRot, vecHorizontal);
+    // Normalise it?
+    vecForward = vecForward - vecLocation;
+    vecHorizontal = vecHorizontal - vecLocation;
+    vecVertical = vecVertical - vecLocation;
+
 
     // Incase its not rotation at object location
     vecLocation = matMultiplyVector(matRot, vecLocation);  
