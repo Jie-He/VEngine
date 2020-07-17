@@ -134,6 +134,7 @@ mat4x4 matMakeProjection(float fFovRad, float fAspectRatio, float fNear, float f
 
 struct triangle{
     vec3d p[3];
+    // change to reference or pointer..
     vec3d colour;
 
     triangle(){
@@ -148,7 +149,15 @@ struct triangle{
         colour.y = g;
         colour.z = b;
     }
-    // A base colour for this face?
+
+    triangle(vec3d va, vec3d vb, vec3d vc, vec3d& vcolour){
+        p[0] = va;
+        p[1] = vb;
+        p[2] = vc;
+        colour.x = vcolour.x;
+        colour.y = vcolour.y;
+        colour.z = vcolour.z;
+    }
 };
 
 #endif//_VEC_MAT_

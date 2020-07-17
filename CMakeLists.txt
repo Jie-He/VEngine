@@ -99,9 +99,8 @@ elseif(PSVITA)
     FILE sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
     
     FILE res/Cube.obj res/Cube.obj
-    FILE res/Nier.obj res/Nier.obj
-    FILE res/Frame.obj res/Frame.obj
-
+    FILE res/cursor.obj res/cursor.obj
+    FILE res/cursor.mtl res/cursor.mtl
     )
 
 else()

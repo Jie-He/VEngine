@@ -1,17 +1,61 @@
 #include "vMesh.h"
+#include <cstring>
 
     bool vMesh::setColour(int r, int g, int b){
         if (r > 255 || r < 0) return false;
         if (g > 255 || g < 0) return false;
         if (b > 255 || b < 0) return false;
+        vec3d baseColour;
         baseColour.x = r;
         baseColour.y = g;
         baseColour.z = b;
+        if (vecColour.size() == 0)
+            vecColour.push_back(baseColour);
+        else
+            vecColour[0] = baseColour;       
+
+        // Update all tri's colour
+        if (!hasColourList){
+            for (auto &t : tris){
+                t.colour = baseColour;
+            }
+        }
         return true;
     }
 
     bool vMesh::setColour(vec3d& vc){
         return setColour(vc.x, vc.y, vc.z);
+    }
+
+    bool vMesh::LoadMaterialFile(std::string sFilename){
+        std::ifstream f(sFilename);
+        if (!f.is_open())
+            return false;
+        while(!f.eof()){
+            char line[128];
+            f.getline(line, 128);
+            std::strstream s;
+            s << line;
+
+            vec3d temp;
+            char kd[3] = "Kd";
+            char word[3];
+            s >> word;
+            
+            if( strcmp(word, kd) == 0){
+                // read the colour information
+                s >> temp.x >> temp.y >> temp.z;
+               
+                // scale to 255
+                temp.x *= 255;
+                temp.y *= 255;
+                temp.z *= 255;
+                std::cout << temp.x << " " << temp.y << " " << temp.z << std::endl;
+                vecColour.push_back(temp);
+            }
+        }
+        hasColourList = true;
+        return true;
     }
 
     bool vMesh::LoadFromObjectFile(std::string sFilename){
@@ -21,6 +65,10 @@
 
         // local cache of verts
         std::vector<vec3d> verts;
+
+        short sColourIndex = 0;
+        char usemtl[7] = "usemtl";
+
         // Clear the stuff in current triangle list
         tris.clear();
         while(!f.eof()){
@@ -36,13 +84,21 @@
                 vec3d v;
                 s >> junk >> v.x >> v.y >> v.z;
                 verts.push_back(v);
-            }
-
-            if( line[0] == 'f'){
+            }else if( line[0] == 'f'){
                 int f[3];
                 s >> junk >> f[0] >> f[1] >> f[2];
-                tris.push_back( triangle(verts[f[0]-1], verts[f[1]-1], verts[f[2]-1], 255.0f) );
-            }
+                tris.push_back( triangle(verts[f[0]-1], verts[f[1]-1], verts[f[2]-1], vecColour[sColourIndex]));
+            }else{
+                // Try if this is a colour file or use material 
+                if (hasColourList){
+                    char word[7] = "nonono";
+                    s >> word;
+
+                    if( strcmp(usemtl, word) == 0){
+                        sColourIndex ++;
+                    }
+                }
+            }            
         }
         return true;
     }

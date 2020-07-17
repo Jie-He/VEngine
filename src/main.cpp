@@ -9,7 +9,6 @@ class mVEngine : public VEngine{
 		std::vector<vMesh> scene;
 
 	void onCreate() override{
-		
 		vMesh meshCube;
 		vMesh plane;
 
@@ -26,8 +25,15 @@ class mVEngine : public VEngine{
 		scene.push_back(meshCube);
 		meshCube.setColour(0, 255,0);
 		scene.push_back(meshCube);
-		meshCube.setColour(0, 0, 255);
-		scene.push_back(meshCube);
+		#ifdef OPENCV
+		vMesh cursor;
+		cursor.LoadMaterialFile("../res/cursor.mtl");
+	 	cursor.LoadFromObjectFile("../res/cursor.obj");
+		scene.push_back(cursor);
+		vec3d trans( 0.0f, -2.0f, 5.0f);
+		scene[2].ApplyTranslation(trans);
+		#endif
+
 		
 		vec3d vecTrans( 0.0f, 0.0f, 5.0f );
 		mat4x4 matScale = matMakeScale(0.25f);
@@ -38,11 +44,6 @@ class mVEngine : public VEngine{
 		matScale = matMakeScale(0.5f);
 		scene[1].ApplyTranslation(vecTrans);
 		scene[1].ApplyScaling(matScale, scene[1].getVecLocation());
-
-		vecTrans = vec3d(0.0f, 0.0f, 5.0f);
-		matScale = matMakeScale(0.75f);
-		scene[2].ApplyTranslation(vecTrans);
-		scene[2].ApplyScaling(matScale, scene[1].getVecLocation());
 
 		vecTrans = vec3d(0.0f, 0.0f, 2.0f);
 		camMain.ApplyTranslation(vecTrans);
@@ -135,7 +136,7 @@ class mVEngine : public VEngine{
 		camMain.ApplyRotation(matRot, camMain.getVecLocation());
 
 		// make the outter frame follow camera's rotation
-		scene[2].ApplyRotation(matRot, scene[2].getVecLocation());
+		scene[1].ApplyRotation(matRot, scene[1].getVecLocation());
 
 
 		// Update cam 2

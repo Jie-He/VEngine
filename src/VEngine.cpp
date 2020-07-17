@@ -185,8 +185,6 @@ void VEngine::draw_scene(vCamera& camMain, std::vector<vMesh>& sceMesh){
     vec3d vecTrans(camMain.nScreenOX, camMain.nScreenOY, 0.0f);
     // Temp, translating to the centre of the screen (0,0)
     vec3d vecTranslate(1.0f + camMain.fOffsetX , 1.0f + camMain.fOffsetY , 0.0f);
-    // Temp set vecLight to camera's location
-    vecLight = camMain.getVecLocation();
 
     // Draw the cam border
     #ifdef OPENCV
@@ -222,7 +220,6 @@ void VEngine::draw_scene(vCamera& camMain, std::vector<vMesh>& sceMesh){
             vec3d vecToLight = vecLight - tri.p[0];
             vecToLight = vecNormalise(vecToLight);
             float ls = normal.dot(vecToLight);
-            tri.colour = mh.getBaseColour() * ls;
 
             // Only draw it if its visible from view
             vec3d temp = tri.p[0] - camMain.getVecLocation();
@@ -232,7 +229,7 @@ void VEngine::draw_scene(vCamera& camMain, std::vector<vMesh>& sceMesh){
                 triProjected.p[0] = matMultiplyVector(camMain.matCamView, tri.p[0]);
                 triProjected.p[1] = matMultiplyVector(camMain.matCamView, tri.p[1]);
                 triProjected.p[2] = matMultiplyVector(camMain.matCamView, tri.p[2]);
-
+                triProjected.colour = tri.colour * ls;
                 int nClippedTriangles = 0;
                 triangle clipped[2];
 
@@ -253,7 +250,7 @@ void VEngine::draw_scene(vCamera& camMain, std::vector<vMesh>& sceMesh){
                     triScale.p[0] = triTranslate.p[0] * vecScale;
                     triScale.p[1] = triTranslate.p[1] * vecScale;
                     triScale.p[2] = triTranslate.p[2] * vecScale;
-                    triScale.colour = tri.colour;
+                    triScale.colour = triProjected.colour;
                     
                     vecTrianglesToRaster.push_back(triScale);
                 }
