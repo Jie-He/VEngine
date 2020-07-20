@@ -100,8 +100,8 @@ elseif(PSVITA)
     FILE sce_sys/livearea/contents/startup.png sce_sys/livearea/contents/startup.png
     FILE sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
     
-    FILE res/Cube.obj res/Cube.obj
-    FILE res/Cube.mtl res/Cube.mtl
+    FILE res/cube.obj res/cube.obj
+    FILE res/cube.mtl res/cube.mtl
     )
 
 else()

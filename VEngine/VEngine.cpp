@@ -40,9 +40,7 @@ void VEngine::ve_clock(){
             vita2d_clear_screen();
             // Get controller input
             sceCtrlPeekBufferPositive(0, &ctrl, 1);
-            vita2d_draw_rectangle(camMain.nScreenOX, camMain.nScreenOY, camMain.nScreenW, camMain.nScreenH, 
-                                  RGBA8(world_colour.x, world_colour.y, world_colour.z));
-
+           
             // Temp break program button ( Select button )
             if (ctrl.buttons & SCE_CTRL_SELECT) break;	
         #endif
@@ -366,7 +364,6 @@ void VEngine::fill_triangle(triangle& tri, vec3d& colour){
 
     int R(colour.x), G(colour.y), B(colour.z);
     #ifdef OPENCV
-    cv::Vec3b tColour = cv::Vec3b(B, G, R);
      // Can use the default (faster) but no depth control...
     std::vector<cv::Point> pts = {  cv::Point(tri.p[0].x, tri.p[0].y),
                                     cv::Point(tri.p[1].x, tri.p[1].y),
@@ -375,7 +372,7 @@ void VEngine::fill_triangle(triangle& tri, vec3d& colour){
     #endif
 
     #ifdef PSVITA
-    unsigned int tColour = RGBA8((int)tri.colour.x, (int)tri.colour.y, (int)tri.colour.z, 0xFF);
+    unsigned int tColour = RGBA8(R, G, B, 0xFF);
     
     vita2d_color_vertex *vertices = (vita2d_color_vertex *)vita2d_pool_memalign(
 			3 * sizeof(vita2d_color_vertex),
@@ -384,7 +381,7 @@ void VEngine::fill_triangle(triangle& tri, vec3d& colour){
     for (int i = 0; i < 3; i++){
         vertices[i].x = tri.p[i].x;
         vertices[i].y = tri.p[i].y;
-        vertices[i].z = 0.5f;
+        vertices[i].z = tri.p[i].z;
         vertices[i].color = tColour;
     }
 
