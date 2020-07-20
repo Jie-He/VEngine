@@ -82,10 +82,11 @@ class VEngine{
         // World information
         // Lighting
         vec3d vecLight;
+        // Wolrd colour
+        vec3d world_colour;
         // OPENCV: canvas, color, input
         #ifdef OPENCV
-        cv::Mat canvas          = cv::Mat::zeros(SCREEN_HEIGHT, SCREEN_WIDTH, CV_8UC3);
-        cv::Scalar world_colour = cv::Scalar(0, 0, 0);
+        cv::Mat canvas = cv::Mat::zeros(SCREEN_HEIGHT, SCREEN_WIDTH, CV_8UC3);
         char keypress;
         #endif
         // VITA CTRL
@@ -124,10 +125,13 @@ class VEngine{
         // Drawing stuff
         void draw_triangle(triangle&);
         void fill_triangle(triangle&, vec3d&);
-        void draw_scene(vCamera&, std::vector<vMesh>&);
+        void draw_mesh(vCamera&, vMesh&, bool =false);
+        void draw_scene(vCamera&, std::vector<vMesh>&, bool =false);
     private:
         // A while loop basically
         // maybe do some extra stuff like taking input
+        void draw_mesh(vCamera&, vec3d&, vec3d&, vec3d&, vMesh&, std::vector<triangle>&, bool =false);
+        void draw_to_frame(vCamera&, std::vector<triangle>&, bool);
         void ve_clock();
 };
 

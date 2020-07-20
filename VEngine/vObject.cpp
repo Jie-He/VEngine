@@ -4,11 +4,12 @@
 
 #include "vObject.h"
 
-void vObject::ApplyTranslation(vec3d& vecTrans){
+void vObject::SetLocation(vec3d vecLoc){
+    vecLocation = vecLoc;
+}
+
+void vObject::ApplyTranslation(vec3d vecTrans){
     vecLocation  += vecTrans;  
-    //vecForward   += vecTrans;
-    //vecVertical  += vecTrans;
-    //vecHorizontal+= vecTrans;
 }
 
 void vObject::ApplyRotation(mat4x4& matRot, vec3d& vecPivot){
@@ -32,7 +33,7 @@ void vObject::ApplyScaling(mat4x4& matScale, vec3d& vecPivot){
 
 void vObject::PointAt(vec3d& vecTarget){
     // Update new forward direction
-    //if (vecTarget != vecLocation){
+    if (vecTarget != vecLocation){
         vecForward = vecTarget - vecLocation;
         vecForward = vecNormalise(vecForward);
 
@@ -44,7 +45,7 @@ void vObject::PointAt(vec3d& vecTarget){
 
         // New right direction
         vecHorizontal = vecCrossProduct(vecVertical, vecForward);
-    //}
+    }
 }
 
 mat4x4 vObject::makeRotationPivot(mat4x4& matRot, vec3d& vecPivot){

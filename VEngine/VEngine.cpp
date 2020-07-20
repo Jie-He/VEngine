@@ -40,6 +40,8 @@ void VEngine::ve_clock(){
             vita2d_clear_screen();
             // Get controller input
             sceCtrlPeekBufferPositive(0, &ctrl, 1);
+            vita2d_draw_rectangle(camMain.nScreenOX, camMain.nScreenOY, camMain.nScreenW, camMain.nScreenH, 
+                                  RGBA8(world_colour.x, world_colour.y, world_colour.z));
 
             // Temp break program button ( Select button )
             if (ctrl.buttons & SCE_CTRL_SELECT) break;	
@@ -47,7 +49,7 @@ void VEngine::ve_clock(){
 
         // OPENCV CLEAR SCREEN
         #ifdef OPENCV
-            canvas = world_colour;
+            canvas = cv::Scalar(world_colour.z, world_colour.y, world_colour.x);
         #endif
         
         // Call update function
@@ -176,147 +178,158 @@ int TriangleClipAgainstPlane(vec3d plane_p, vec3d plane_n, triangle &in_tri, tri
 
 	}
 
-// Draw a single mesh [RE]
-void VEngine::draw_scene(vCamera& camMain, std::vector<vMesh>& sceMesh){
+void VEngine::draw_to_frame(vCamera& camMain, std::vector<triangle>& vecTrianglesToRaster, bool outline){
+    // sort the faces by distance, :. Painter's Method
+    // Change to Depth buffer later
+    //#ifdef OPENCV
+    std::sort(vecTrianglesToRaster.begin(), vecTrianglesToRaster.end(),
+        [](triangle &t1, triangle &t2){
+            float z1 = (t1.p[0].z + t1.p[1].z + t1.p[2].z) / 3.0f;
+            float z2 = (t2.p[0].z + t2.p[1].z + t2.p[2].z) / 3.0f;
+            
+            return z1 > z2;
+        });
+    //#endif
+
+    for (auto &triToRaster : vecTrianglesToRaster){
+        // Clip triangles against all four screen edges, this could yield
+        triangle clipped[2];
+        std::list<triangle> listTriangles;
+
+        // Add initial triangle
+        listTriangles.push_back(triToRaster);
+        int nNewTriangles = 1;
+
+        for (int p = 0; p < 4; p++){
+            int nTrisToAdd = 0;
+            while (nNewTriangles > 0)
+            {
+                // Take triangle from front of queue
+                triangle test = listTriangles.front();
+                listTriangles.pop_front();
+                nNewTriangles--;
+
+                // Clip it against a plane. We only need to test each 
+                // subsequent plane, against subsequent new triangles
+                // as all triangles after a plane clip are guaranteed
+                // to lie on the inside of the plane. 
+                switch (p)
+                {
+                case 0:	nTrisToAdd = TriangleClipAgainstPlane({ 0.0f, (float)(camMain.nScreenOY + 1), 0.0f }, { 0.0f, 1.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+                case 1:	nTrisToAdd = TriangleClipAgainstPlane({ 0.0f, (float)(camMain.nScreenH + camMain.nScreenOY - 1), 0.0f }, { 0.0f, -1.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+                case 2:	nTrisToAdd = TriangleClipAgainstPlane({ (float)(camMain.nScreenOX + 1), 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+                case 3:	nTrisToAdd = TriangleClipAgainstPlane({ (float)(camMain.nScreenW + camMain.nScreenOX - 1), 0.0f, 0.0f }, { -1.0f, 0.0f, 0.0f }, test, clipped[0], clipped[1]); break;
+                }
+
+                // Clipping may yield a variable number of triangles, so
+                // add these new ones to the back of the queue for subsequent
+                // clipping against next planes
+                for (int w = 0; w < nTrisToAdd; w++)
+                    listTriangles.push_back(clipped[w]);
+            }
+            nNewTriangles = listTriangles.size();
+        }
+        
+        if(outline){                
+            for (auto &t : listTriangles){
+                fill_triangle(t, t.colour);   
+                draw_triangle(t);
+            }
+        }else{
+            for (auto &t : listTriangles){
+                fill_triangle(t, t.colour);   
+            }
+        }
+    }   
+}
+
+void VEngine::draw_mesh(vCamera& camMain, vec3d& vecScale, vec3d& vecOffset, vec3d& vecTranslate, vMesh& mh, std::vector<triangle>& vecTrianglesToRaster, bool outline){
+    for (auto& tri : mh.getTris()){
+        // Normal calculation
+        vec3d normal, line1, line2;
+        // Get lines from either side of triangle
+        line1 = tri.p[1] - tri.p[0];
+        line2 = tri.p[2] - tri.p[0];
+        
+        // Take crossproduct of lines to get normal to triangle surface
+        normal = vecCrossProduct(line1, line2);
+        // Normalise a normal
+        normal = vecNormalise(normal);
+
+        // Simple light shading
+        vec3d vecToLight = vecLight - tri.p[0];
+        vecToLight = vecNormalise(vecToLight);
+        float ls = normal.dot(vecToLight);
+
+        // Only draw it if its visible from view
+        vec3d temp = tri.p[0] - camMain.getVecLocation();
+        if (normal.dot(temp) < 0.0f){
+            triangle triProjected, triTranslate, triScale;
+            // Project to camera view first
+            triProjected.p[0] = matMultiplyVector(camMain.matCamView, tri.p[0]);
+            triProjected.p[1] = matMultiplyVector(camMain.matCamView, tri.p[1]);
+            triProjected.p[2] = matMultiplyVector(camMain.matCamView, tri.p[2]);
+            triProjected.colour = tri.colour * ls;
+            int nClippedTriangles = 0;
+            triangle clipped[2];
+
+            nClippedTriangles = TriangleClipAgainstPlane({0.0f, 0.0f, 0.1f}, {0.0f, 0.0f, 1.0f},
+                                            triProjected, clipped[0], clipped[1]);
+            
+            for (int n = 0; n < nClippedTriangles; n++){
+                    // Project the vec3d with the projection matrix
+                triProjected.p[0] = matMultiplyVector(camMain.matCamProj, clipped[n].p[0]);
+                triProjected.p[1] = matMultiplyVector(camMain.matCamProj, clipped[n].p[1]);
+                triProjected.p[2] = matMultiplyVector(camMain.matCamProj, clipped[n].p[2]);
+
+                triTranslate.p[0] = triProjected.p[0] + vecTranslate;
+                triTranslate.p[1] = triProjected.p[1] + vecTranslate;
+                triTranslate.p[2] = triProjected.p[2] + vecTranslate;
+
+                // Scale into view
+                triScale.p[0] = triTranslate.p[0] * vecScale;
+                triScale.p[1] = triTranslate.p[1] * vecScale;
+                triScale.p[2] = triTranslate.p[2] * vecScale;
+                triScale.colour = triProjected.colour;
+                
+                vecTrianglesToRaster.push_back(triScale);
+            }
+        }
+    }
+}
+
+void VEngine::draw_mesh(vCamera& camMain, vMesh& mesh, bool outline){
     std::vector<triangle> vecTrianglesToRaster;
 
     // Camera Scale and offset
     vec3d vecScale(0.5f * (float)camMain.nScreenW, 0.5f * (float)camMain.nScreenH, 1.0f);
-    vec3d vecTrans(camMain.nScreenOX, camMain.nScreenOY, 0.0f);
-    // Temp, translating to the centre of the screen (0,0)
+    // Camera offset 
+    vec3d vecOffset(camMain.nScreenOX, camMain.nScreenOY, 0.0f);
+    // Translate coordinate (0,0,0) to centre of camera. 1 to the edges.
     vec3d vecTranslate(1.0f + camMain.fOffsetX , 1.0f + camMain.fOffsetY , 0.0f);
 
-    // Draw the cam border
-    #ifdef OPENCV
-    //cv::rectangle(canvas, cv::Rect(cv::Point(camMain.nScreenOX, camMain.nScreenOY), cv::Point(camMain.nScreenW + camMain.nScreenOX, camMain.nScreenH + camMain.nScreenOY)), cv::Scalar(0,0,255), 3);
-    cv::line(canvas, cv::Point(camMain.nScreenOX, camMain.nScreenOY), cv::Point(camMain.nScreenOX + camMain.nScreenW, camMain.nScreenOY), cv::Scalar(255,0,0), 2);
-    cv::line(canvas, cv::Point(camMain.nScreenOX, camMain.nScreenOY), cv::Point( camMain.nScreenOX, camMain.nScreenOY + camMain.nScreenH), cv::Scalar(255,0,0), 2);
-    cv::line(canvas, cv::Point(camMain.nScreenOX+camMain.nScreenW, camMain.nScreenOY), cv::Point(camMain.nScreenOX + camMain.nScreenW, camMain.nScreenOY + camMain.nScreenH), cv::Scalar(255,0,0), 2);
-    cv::line(canvas, cv::Point(camMain.nScreenOX, camMain.nScreenOY+camMain.nScreenH), cv::Point(camMain.nScreenOX + camMain.nScreenW, camMain.nScreenOY + camMain.nScreenH), cv::Scalar(255,0,0), 2);
-    
-    #endif
-    #ifdef PSVITA
-    //vita2d_draw_rectangle(camMain.nScreenOX, camMain.nScreenOY, camMain.nScreenW, camMain.nScreenH, AMBER);
-    vita2d_draw_line(camMain.nScreenOX, camMain.nScreenOY, camMain.nScreenOX + camMain.nScreenW, camMain.nScreenOY, AMBER);
-    vita2d_draw_line(camMain.nScreenOX, camMain.nScreenOY, camMain.nScreenOX, camMain.nScreenOY + camMain.nScreenH, AMBER);
-    vita2d_draw_line(camMain.nScreenOX+camMain.nScreenW, camMain.nScreenOY, camMain.nScreenOX + camMain.nScreenW, camMain.nScreenOY + camMain.nScreenH, AMBER);
-    vita2d_draw_line(camMain.nScreenOX, camMain.nScreenOY+camMain.nScreenH, camMain.nScreenOX + camMain.nScreenW, camMain.nScreenOY + camMain.nScreenH, AMBER);
-    #endif
-
-    for (vMesh& mh : sceMesh){
-        for (auto& tri : mh.getTris()){
-            // Normal calculation
-            vec3d normal, line1, line2;
-            // Get lines from either side of triangle
-            line1 = tri.p[1] - tri.p[0];
-            line2 = tri.p[2] - tri.p[0];
-            
-            // Take crossproduct of lines to get normal to triangle surface
-            normal = vecCrossProduct(line1, line2);
-            // Normalise a normal
-            normal = vecNormalise(normal);
-
-            // Simple light shading
-            vec3d vecToLight = vecLight - tri.p[0];
-            vecToLight = vecNormalise(vecToLight);
-            float ls = normal.dot(vecToLight);
-
-            // Only draw it if its visible from view
-            vec3d temp = tri.p[0] - camMain.getVecLocation();
-            if (normal.dot(temp) < 0.0f){
-                triangle triProjected, triTranslate, triScale;
-                // Project to camera view first
-                triProjected.p[0] = matMultiplyVector(camMain.matCamView, tri.p[0]);
-                triProjected.p[1] = matMultiplyVector(camMain.matCamView, tri.p[1]);
-                triProjected.p[2] = matMultiplyVector(camMain.matCamView, tri.p[2]);
-                triProjected.colour = tri.colour * ls;
-                int nClippedTriangles = 0;
-                triangle clipped[2];
-
-                nClippedTriangles = TriangleClipAgainstPlane({0.0f, 0.0f, 0.1f}, {0.0f, 0.0f, 1.0f},
-                                                triProjected, clipped[0], clipped[1]);
-                
-                for (int n = 0; n < nClippedTriangles; n++){
-                     // Project the vec3d with the projection matrix
-                    triProjected.p[0] = matMultiplyVector(camMain.matCamProj, clipped[n].p[0]);
-                    triProjected.p[1] = matMultiplyVector(camMain.matCamProj, clipped[n].p[1]);
-                    triProjected.p[2] = matMultiplyVector(camMain.matCamProj, clipped[n].p[2]);
-
-                    triTranslate.p[0] = triProjected.p[0] + vecTranslate;
-                    triTranslate.p[1] = triProjected.p[1] + vecTranslate;
-                    triTranslate.p[2] = triProjected.p[2] + vecTranslate;
-
-                    // Scale into view
-                    triScale.p[0] = triTranslate.p[0] * vecScale;
-                    triScale.p[1] = triTranslate.p[1] * vecScale;
-                    triScale.p[2] = triTranslate.p[2] * vecScale;
-                    triScale.colour = triProjected.colour;
-                    
-                    vecTrianglesToRaster.push_back(triScale);
-                }
-            }
-        }
-    
-
-        // sort the faces by distance, :. Painter's Method
-        // Change to Depth buffer later
-        //#ifdef OPENCV
-        std::sort(vecTrianglesToRaster.begin(), vecTrianglesToRaster.end(),
-            [](triangle &t1, triangle &t2){
-                float z1 = (t1.p[0].z + t1.p[1].z + t1.p[2].z) / 3.0f;
-                float z2 = (t2.p[0].z + t2.p[1].z + t2.p[2].z) / 3.0f;
-               
-                return z1 > z2;
-            });
-        //#endif
-
-        for (auto &triToRaster : vecTrianglesToRaster){
-            // Clip triangles against all four screen edges, this could yield
-            triangle clipped[2];
-            std::list<triangle> listTriangles;
-
-            // Add initial triangle
-            listTriangles.push_back(triToRaster);
-            int nNewTriangles = 1;
-
-            for (int p = 0; p < 4; p++){
-                int nTrisToAdd = 0;
-                while (nNewTriangles > 0)
-                {
-                    // Take triangle from front of queue
-                    triangle test = listTriangles.front();
-                    listTriangles.pop_front();
-                    nNewTriangles--;
-
-                    // Clip it against a plane. We only need to test each 
-                    // subsequent plane, against subsequent new triangles
-                    // as all triangles after a plane clip are guaranteed
-                    // to lie on the inside of the plane. 
-                    switch (p)
-                    {
-                    case 0:	nTrisToAdd = TriangleClipAgainstPlane({ 0.0f, (float)(camMain.nScreenOY + 1), 0.0f }, { 0.0f, 1.0f, 0.0f }, test, clipped[0], clipped[1]); break;
-                    case 1:	nTrisToAdd = TriangleClipAgainstPlane({ 0.0f, (float)(camMain.nScreenH + camMain.nScreenOY - 1), 0.0f }, { 0.0f, -1.0f, 0.0f }, test, clipped[0], clipped[1]); break;
-                    case 2:	nTrisToAdd = TriangleClipAgainstPlane({ (float)(camMain.nScreenOX + 1), 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, test, clipped[0], clipped[1]); break;
-                    case 3:	nTrisToAdd = TriangleClipAgainstPlane({ (float)(camMain.nScreenW + camMain.nScreenOX - 1), 0.0f, 0.0f }, { -1.0f, 0.0f, 0.0f }, test, clipped[0], clipped[1]); break;
-                    }
-
-                    // Clipping may yield a variable number of triangles, so
-                    // add these new ones to the back of the queue for subsequent
-                    // clipping against next planes
-                    for (int w = 0; w < nTrisToAdd; w++)
-                        listTriangles.push_back(clipped[w]);
-                }
-                nNewTriangles = listTriangles.size();
-            }
-
-            for (auto &t : listTriangles){
-                fill_triangle(t, t.colour);   
-               // draw_triangle(t);
-            }
-        } 
-    }
+    // Call draw mesh to populate vecTrianglesToRaster
+    draw_mesh(camMain, vecScale, vecOffset, vecTranslate, mesh, vecTrianglesToRaster, outline);
+    draw_to_frame(camMain, vecTrianglesToRaster, outline);
 }
 
+// Draw a list of mesh [RE]
+void VEngine::draw_scene(vCamera& camMain, std::vector<vMesh>& sceMesh, bool outline){
+    std::vector<triangle> vecTrianglesToRaster;
+
+    // Camera Scale and offset
+    vec3d vecScale(0.5f * (float)camMain.nScreenW, 0.5f * (float)camMain.nScreenH, 1.0f);
+    // Camera offset 
+    vec3d vecOffset(camMain.nScreenOX, camMain.nScreenOY, 0.0f);
+    // Translate coordinate (0,0,0) to centre of camera. 1 to the edges.
+    vec3d vecTranslate(1.0f + camMain.fOffsetX , 1.0f + camMain.fOffsetY , 0.0f);
+
+    for (vMesh& mh : sceMesh){
+        draw_mesh(camMain, vecScale, vecOffset, vecTranslate, mh, vecTrianglesToRaster, outline);
+    }
+
+    draw_to_frame(camMain, vecTrianglesToRaster, outline);
+}
 // Drawing a triangle
 void VEngine::draw_triangle(triangle& tri){
     // draw the three lines

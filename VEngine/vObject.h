@@ -39,9 +39,9 @@ class vObject{
             vecHorizontal= vecCrossProduct(vecVertical, vecForward);
             bActive = true;
         }
-
+        void SetLocation(vec3d vecLoc);
         // Translate the location vector and all the directional ones.
-        void ApplyTranslation(vec3d& vecTrans);
+        void ApplyTranslation(vec3d vecTrans);
         // Rotate the directional vectors around a pivot.
         // Set pivot to object location for self rotation.
         void ApplyRotation(mat4x4& matRot, vec3d& vecPivot);

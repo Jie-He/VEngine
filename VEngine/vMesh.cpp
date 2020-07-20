@@ -50,7 +50,6 @@
                 temp.x *= 255;
                 temp.y *= 255;
                 temp.z *= 255;
-                std::cout << temp.x << " " << temp.y << " " << temp.z << std::endl;
                 vecColour.push_back(temp);
             }
         }
@@ -115,7 +114,7 @@
         ApplyMatrixOnTris(matPivot);
     }
 
-    void vMesh::ApplyTranslation(vec3d& vecTrans){
+    void vMesh::ApplyTranslation(vec3d vecTrans){
         // Update the origin
         vObject::ApplyTranslation(vecTrans);
         // Update the mesh vertex
@@ -124,6 +123,14 @@
 			tris[i].p[1] = tris[i].p[1] + vecTrans;
 			tris[i].p[2] = tris[i].p[2] + vecTrans;
 	    }
+    }
+
+    void vMesh::setLocation(vec3d vecLoc){
+        if (vecLoc != vecLocation){
+            // Calc translation vector to new location
+            vec3d vecTranslate = vecLoc - vecLocation;
+            ApplyTranslation(vecTranslate);
+        }
     }
 
     void vMesh::ApplyMatrixOnTris(mat4x4& mat){

@@ -5,10 +5,11 @@ class MVEngine : public VEngine{
 	private: 
 		vCamera camMain = vCamera(SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0);
 		std::vector<vMesh> scene;
+		vMesh meshCube;
 	
 	void onCreate() override{
-		// Load the demo cube
-		vMesh meshCube;
+		// Change world colour
+		world_colour = vec3d(25, 25, 25);
 
 		#ifdef OPENCV
 		meshCube.LoadMaterialFile("../res/cube.mtl");
@@ -20,13 +21,11 @@ class MVEngine : public VEngine{
 		meshCube.LoadFromObjectFile("app0:/res/cube.obj");
 		#endif
 
-		vec3d vt(0.0f, 0.0f, 10.0f);
-		meshCube.ApplyTranslation(vt);
-
+		meshCube.setLocation(vec3d(0.0f, 0.0f, 5.0f));
 		scene.push_back(meshCube);
 
 		// Shift the camera
-		vec3d vtranslate(0.0f, 0.0f, -10.0f);
+		vec3d vtranslate(0.0f, 0.0f, -5.0f);
 		camMain.ApplyTranslation(vtranslate);
 	}
 
@@ -38,7 +37,6 @@ class MVEngine : public VEngine{
 
 		// Rotate the cube
 		scene[0].ApplyRotation(matRot, scene[0].getVecLocation());
-
 		// Draw the scene
 		draw_scene(camMain, scene);
 	}
