@@ -84,6 +84,8 @@ class VEngine{
         vec3d vecLight;
         // Wolrd colour
         vec3d world_colour;
+        // if you want the crap shadow
+        bool bLighting;
         // OPENCV: canvas, color, input
         #ifdef OPENCV
         cv::Mat canvas = cv::Mat::zeros(SCREEN_HEIGHT, SCREEN_WIDTH, CV_8UC3);
@@ -103,6 +105,7 @@ class VEngine{
             #endif
 
             // Set light location
+            bLighting = true;
             vecLight = vec3d(0.0f, -10.0f, 0.0f);
         };
         // do it later
@@ -130,7 +133,7 @@ class VEngine{
     private:
         // A while loop basically
         // maybe do some extra stuff like taking input
-        void draw_mesh(vCamera&, vec3d&, vec3d&, vec3d&, vMesh&, std::vector<triangle>&, bool =false);
+        void project_mesh(vCamera&, vec3d&, vec3d&, vec3d&, vMesh&, std::vector<triangle>&, bool =false);
         void draw_to_frame(vCamera&, std::vector<triangle>&, bool);
         void ve_clock();
 };

@@ -241,7 +241,7 @@ void VEngine::draw_to_frame(vCamera& camMain, std::vector<triangle>& vecTriangle
     }   
 }
 
-void VEngine::draw_mesh(vCamera& camMain, vec3d& vecScale, vec3d& vecOffset, vec3d& vecTranslate, vMesh& mh, std::vector<triangle>& vecTrianglesToRaster, bool outline){
+void VEngine::project_mesh(vCamera& camMain, vec3d& vecScale, vec3d& vecOffset, vec3d& vecTranslate, vMesh& mh, std::vector<triangle>& vecTrianglesToRaster, bool outline){
     for (auto& tri : mh.getTris()){
         // Normal calculation
         vec3d normal, line1, line2;
@@ -255,9 +255,13 @@ void VEngine::draw_mesh(vCamera& camMain, vec3d& vecScale, vec3d& vecOffset, vec
         normal = vecNormalise(normal);
 
         // Simple light shading
-        vec3d vecToLight = vecLight - tri.p[0];
-        vecToLight = vecNormalise(vecToLight);
-        float ls = normal.dot(vecToLight);
+        float ls = 1.0f;
+        if (bLighting){
+            vec3d vecToLight = vecLight - tri.p[0];
+            vecToLight = vecNormalise(vecToLight);
+            float ls = normal.dot(vecToLight);
+        }
+        
 
         // Only draw it if its visible from view
         vec3d temp = tri.p[0] - camMain.getVecLocation();
@@ -307,7 +311,7 @@ void VEngine::draw_mesh(vCamera& camMain, vMesh& mesh, bool outline){
     vec3d vecTranslate(1.0f + camMain.fOffsetX , 1.0f + camMain.fOffsetY , 0.0f);
 
     // Call draw mesh to populate vecTrianglesToRaster
-    draw_mesh(camMain, vecScale, vecOffset, vecTranslate, mesh, vecTrianglesToRaster, outline);
+    project_mesh(camMain, vecScale, vecOffset, vecTranslate, mesh, vecTrianglesToRaster, outline);
     draw_to_frame(camMain, vecTrianglesToRaster, outline);
 }
 
@@ -323,7 +327,7 @@ void VEngine::draw_scene(vCamera& camMain, std::vector<vMesh>& sceMesh, bool out
     vec3d vecTranslate(1.0f + camMain.fOffsetX , 1.0f + camMain.fOffsetY , 0.0f);
 
     for (vMesh& mh : sceMesh){
-        draw_mesh(camMain, vecScale, vecOffset, vecTranslate, mh, vecTrianglesToRaster, outline);
+        project_mesh(camMain, vecScale, vecOffset, vecTranslate, mh, vecTrianglesToRaster, outline);
     }
 
     draw_to_frame(camMain, vecTrianglesToRaster, outline);

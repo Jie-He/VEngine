@@ -1,6 +1,5 @@
 #include "../../VEngine/VEngine.h"
 
-/**
 class mVEngine : public VEngine{
 
 	private:
@@ -10,6 +9,9 @@ class mVEngine : public VEngine{
 		std::vector<vMesh> scene;
 
 	void onCreate() override{
+		// turn the vec lighting off
+		bLighting = true;
+
 		vMesh meshCube;
 		vMesh plane;
 
@@ -137,4 +139,3 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
-**/
