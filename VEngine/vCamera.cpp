@@ -11,10 +11,22 @@ void vCamera::ApplyRotation(mat4x4& matRot, vec3d& vecPivot){
     PointAt(vecLook);
 }
 
+void vCamera::ApplyTranslation(vec3d vecTrans){
+    // Call parent
+    vObject::ApplyTranslation(vecTrans);
+    // Update camera matrix
+    update_camera_mat();
+}
+
 // Calls the parent function first for adjusting 
 void vCamera::PointAt(vec3d& vecTarget){
     vObject::PointAt(vecTarget);
+    // Update camera matrix
+    update_camera_mat();
+}
 
+// Update the camera view matrix
+void vCamera::update_camera_mat(){
     matCamView = matMakeTranslate(vecLocation);
     
     matCamView.m[0][0] = vecHorizontal.x;	matCamView.m[0][1] = vecHorizontal.y;	matCamView.m[0][2] = vecHorizontal.z;	
