@@ -114,6 +114,7 @@ struct mat4x4{
 };
 
 // Operation on vector
+vec2d vecNormalise(vec2d&);
 vec3d vecCrossProduct(vec3d&, vec3d&);
 vec3d vecNormalise(vec3d&);
 vec3d vecNegative(vec3d&);

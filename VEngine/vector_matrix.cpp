@@ -11,7 +11,14 @@ vec3d vecCrossProduct(vec3d& v1, vec3d& v2){
 
 vec3d vecNormalise(vec3d& v){
     float l = v.length();
-    return vec3d(v.x / l, v.y / l, v.z / l);
+    if (l != 0) return vec3d(v.x / l, v.y / l, v.z / l);
+    return v;
+}
+
+vec2d vecNormalise(vec2d& v){
+    float l = sqrtf(v.x * v.x + v.y * v.y);
+    if (l != 0) return vec2d(v.x / l, v.y / l);
+    return v;
 }
 
 vec3d vecNegative(vec3d& v){

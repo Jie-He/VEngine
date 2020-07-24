@@ -56,6 +56,7 @@ void VEngine::ve_clock(){
         // FPS info
         sprintf(buff, "FPS: %6.3f", fFPS);
         #ifdef PSVITA
+            vita2d_font_draw_text(font, 22, 22, BLACK, 12, buff);
             vita2d_font_draw_text(font, 20, 20, WHITE, 11, buff);
             // Print stick info.. since its not working
             sprintf(buff, "LX: %d, LY: %d", ctrl.lx, ctrl.ly);
@@ -69,17 +70,19 @@ void VEngine::ve_clock(){
 
         // OPENCV DRAW FPS INFO
         #ifdef OPENCV
-            cv::putText(canvas, buff, cv::Point(10, 20),
+            cv::putText(canvas, buff, cv::Point(22, 22),
+                cv::FONT_HERSHEY_DUPLEX,
+                0.5, CV_RGB(0,0,0), 2);
+            cv::putText(canvas, buff, cv::Point(20, 20),
                         cv::FONT_HERSHEY_DUPLEX,
                         0.5, CV_RGB(255, 255, 255), 1);
             // OPENCV DRAW SCREEN && WAIT
             imshow("VEngine", canvas);
-            keypress = cv::waitKey(1);
+            keypress = cv::waitKey(10);
             // Exit when esc key pressed
             if (keypress == 27) break;
         #endif
     }
-
 }
 
 vec3d vecIntersectPlane(vec3d &plane_p, vec3d &plane_n, vec3d &lineStart, vec3d &lineEnd){
@@ -259,7 +262,7 @@ void VEngine::project_mesh(vCamera& camMain, vec3d& vecScale, vec3d& vecOffset, 
         if (bLighting){
             vec3d vecToLight = vecLight - tri.p[0];
             vecToLight = vecNormalise(vecToLight);
-            float ls = normal.dot(vecToLight);
+            ls = std::max(0.2f, normal.dot(vecToLight));
         }
         
 
@@ -385,7 +388,7 @@ void VEngine::fill_triangle(triangle& tri, vec3d& colour){
     for (int i = 0; i < 3; i++){
         vertices[i].x = tri.p[i].x;
         vertices[i].y = tri.p[i].y;
-        vertices[i].z = tri.p[i].z;
+        vertices[i].z = 0.5f;//tri.p[i].z;
         vertices[i].color = tColour;
     }
 

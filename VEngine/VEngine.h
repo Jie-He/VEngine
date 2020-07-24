@@ -89,7 +89,7 @@ class VEngine{
         // OPENCV: canvas, color, input
         #ifdef OPENCV
         cv::Mat canvas = cv::Mat::zeros(SCREEN_HEIGHT, SCREEN_WIDTH, CV_8UC3);
-        char keypress;
+        int keypress;
         #endif
         // VITA CTRL
         // Could pass: [RE]
