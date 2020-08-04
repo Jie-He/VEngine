@@ -58,12 +58,6 @@ void VEngine::ve_clock(){
         #ifdef PSVITA
             vita2d_font_draw_text(font, 22, 22, BLACK, 12, buff);
             vita2d_font_draw_text(font, 20, 20, WHITE, 11, buff);
-            // Print stick info.. since its not working
-            sprintf(buff, "LX: %d, LY: %d", ctrl.lx, ctrl.ly);
-            vita2d_font_draw_text(font, 20, 60, WHITE, 11, buff);
-            sprintf(buff, "RX: %d, RY: %d", ctrl.rx, ctrl.ry);
-            vita2d_font_draw_text(font, 20, 80, WHITE, 11, buff);
-
             vita2d_end_drawing();
             vita2d_swap_buffers();
         #endif
