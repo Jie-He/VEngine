@@ -130,6 +130,8 @@ class VEngine{
         void fill_triangle(triangle&, vec3d&);
         void draw_mesh(vCamera&, vMesh&, bool =false);
         void draw_scene(vCamera&, std::vector<vMesh>&, bool =false);
+        // Taking a 3D point and project to screen (include the depth info)
+        vec3d project_point(vec3d, vCamera&);
     private:
         // A while loop basically
         // maybe do some extra stuff like taking input

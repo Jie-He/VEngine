@@ -329,6 +329,24 @@ void VEngine::draw_scene(vCamera& camMain, std::vector<vMesh>& sceMesh, bool out
 
     draw_to_frame(camMain, vecTrianglesToRaster, outline);
 }
+
+vec3d VEngine::project_point(vec3d vPoint, vCamera& cam){
+    vec2d res;
+
+    // Project point to camera view
+    vPoint = matMultiplyVector(cam.matCamView, vPoint);
+    // Project with the camera world matrix
+    vPoint = matMultiplyVector(cam.matCamProj, vPoint);
+    // Translate (0,0,0) to the centre of frame
+    vec3d vecTranslate(1.0f + cam.fOffsetX , 1.0f + cam.fOffsetY , 0.0f);
+    vPoint = vPoint + vecTranslate;
+     // Scale into the camera's view
+    vec3d vecScale(0.5f * (float)cam.nScreenW, 0.5f * (float)cam.nScreenH, 1.0f);
+    vPoint = vPoint * vecScale;
+
+    return vPoint;
+}
+
 // Drawing a triangle
 void VEngine::draw_triangle(triangle& tri){
     // draw the three lines

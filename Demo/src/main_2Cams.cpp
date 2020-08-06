@@ -1,3 +1,54 @@
+/**
+#include "../../VEngine/VEngine.h"
+
+class MVEngine : public VEngine{
+
+	private: 
+		vCamera camMain = vCamera(SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0);
+		std::vector<vMesh> scene;
+		vMesh vmPlayer;
+		vMesh vmGround;
+	
+	void onCreate() override{
+		// Change world colour
+		world_colour = vec3d(23, 23, 23);
+
+		#ifdef OPENCV
+		vmPlayer.LoadMaterialFile("../res/cube.mtl");
+		vmPlayer.LoadFromObjectFile("../res/cube.obj");
+		#endif
+
+		#ifdef PSVITA
+		vmPlayer.LoadMaterialFile("app0:/res/cube.mtl");
+		vmPlayer.LoadFromObjectFile("app0:/res/cube.obj");
+		#endif
+
+		scene.push_back(vmPlayer);
+	}
+
+	void update(float fElapsedTime) override{
+		
+		draw_scene(camMain, scene);	
+
+		camMain.ApplyTranslation(vec3d(0.0f, 0.0f, -1.0f * fElapsedTime));
+		//mat4x4 rotZ = matMakeRotationZ(2.0f * fElapsedTime);
+		//camMain.ApplyRotation(rotZ, camMain.getVecLocation());
+	}
+
+};
+
+int main(int argc, char *argv[]) {
+
+	MVEngine mve;
+	mve.start();
+
+	#ifdef PSVITA
+	sceKernelExitProcess(0);
+	#endif 
+	return 0;
+}
+
+
 #include "../../VEngine/VEngine.h"
 
 class mVEngine : public VEngine{
@@ -139,3 +190,4 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
+**/

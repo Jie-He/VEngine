@@ -28,6 +28,10 @@ struct vec2d{
 		return vec2d(x - v.x, y - v.y);
 	}
 
+    vec2d operator*(const float v) const{
+        return vec2d(x*v, y*v);
+    }
+
 	vec2d operator==(const vec2d& v) const{
 		return (x == v.x && y == v.y);
 	}
@@ -37,6 +41,12 @@ struct vec2d{
 		y += v.y;
 		return *this;
 	}
+
+    vec2d& operator*=(float v){
+        x *= v;
+        y *= v;
+        return *this;
+    }
 };
 
 // 3D coord struct

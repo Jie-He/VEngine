@@ -1,10 +1,9 @@
-/**
 #include "../../VEngine/VEngine.h"
 
 class MVEngine : public VEngine{
 
 	private: 
-		vCamera camMain = vCamera(SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0);
+		vCamera camMain = vCamera(SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 1.0f, 2.0f);
 		std::vector<vMesh> scene;
 		vMesh meshCube;
 	
@@ -37,9 +36,26 @@ class MVEngine : public VEngine{
 		mat4x4 matRot  = matMultiplyMatrix(matRotZ, matRotX);
 
 		// Rotate the cube
-		scene[0].ApplyRotation(matRot, scene[0].getVecLocation());
+		//scene[0].ApplyRotation(matRot, scene[0].getVecLocation());
+		meshCube.ApplyRotation(matRot, meshCube.getVecLocation());
 		// Draw the scene
-		draw_scene(camMain, scene);
+		//draw_scene(camMain, scene);
+		draw_mesh(camMain, meshCube);
+
+		float rx, ry;
+		rx = (rand() % 2) - 1;
+		ry = (rand() % 2) - 1;
+
+		camMain.ApplyTranslation(vec3d(rx * fElapsedTime, ry * fElapsedTime, fElapsedTime));
+
+		vec3d cube_centre = project_point(meshCube.getVecLocation(), camMain);
+		#ifdef OPENCV
+		cv::circle(canvas, cv::Point(cube_centre.x, cube_centre.y), 5, cv::Scalar(0,0,255));
+		char buff[20];
+		sprintf(buff, "Depth Z: %6.3f", cube_centre.z);
+		cv::putText(canvas, buff, cv::Point(cube_centre.x + 5, cube_centre.y - 5),
+					 cv::FONT_HERSHEY_DUPLEX, 0.5, CV_RGB(255,255,255), 1);
+		#endif
 	}
 
 };
@@ -54,4 +70,3 @@ int main(int argc, char *argv[]) {
 	#endif 
 	return 0;
 }
-**/
