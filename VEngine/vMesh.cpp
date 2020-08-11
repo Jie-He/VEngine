@@ -67,6 +67,8 @@
 
         short sColourIndex = 0;
         char usemtl[7] = "usemtl";
+        char mtllib[7] = "mtllib";
+
 
         // Clear the stuff in current triangle list
         tris.clear();
@@ -89,10 +91,29 @@
                 tris.push_back( triangle(verts[f[0]-1], verts[f[1]-1], verts[f[2]-1], vecColour[sColourIndex]));
             }else{
                 // Try if this is a colour file or use material 
-                if (hasColourList){
-                    char word[7] = "nonono";
-                    s >> word;
+                char word[7] = "nonono";
+                s >> word;
 
+                if (strcmp(mtllib, word) == 0){
+                    // read the file
+                    std::string mtlfile;
+                    s >> mtlfile;
+
+                    std::cout << "Found mtlfile" << std::endl;
+
+                    // For linux & vita file sys, windows uses '\'
+                    const size_t last_slash_idx = sFilename.rfind('/');
+                    if (std::string::npos != last_slash_idx){
+                        std::string directory;
+                        directory = sFilename.substr(0, last_slash_idx + 1);
+                        directory.append(mtlfile);
+                        std::cout << "Mtl Filepath: " << directory << std::endl;
+                        LoadMaterialFile(directory);
+                    }
+                }
+
+
+                if (hasColourList){
                     if( strcmp(usemtl, word) == 0){
                         sColourIndex ++;
                     }

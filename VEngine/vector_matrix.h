@@ -11,7 +11,8 @@
 struct vec2d{
     float x, y;
 
-    vec2d(float x=0, float y=0) : x(x), y(y){}
+    vec2d(float x=0, float y=0) : x(x), y(y){};
+    vec2d(const vec2d& t): x(t.x), y(t.y)   {};
 
     // Overload some operators
     vec2d& operator=(vec2d v){
@@ -46,6 +47,18 @@ struct vec2d{
         x *= v;
         y *= v;
         return *this;
+    }
+    
+    float dot(const vec2d& v){
+        return x * v.x + y * v.y;
+    }
+
+    float cross(const vec2d& v){
+        return x * v.y - y * v.x;
+    }
+
+    float length(){
+        return sqrtf(x * x + y * y);
     }
 };
 

@@ -15,7 +15,7 @@ void VEngine::stop(){
 void VEngine::ve_clock(){
     
     // For FPS information
-    char buff[16];	
+    char buff[128];	
 
     // maybe get an clock ticking?
 	auto cTimeStamp = std::chrono::system_clock::now();
