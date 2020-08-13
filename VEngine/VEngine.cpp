@@ -330,6 +330,23 @@ void VEngine::draw_scene(vCamera& camMain, std::vector<vMesh>& sceMesh, bool out
     draw_to_frame(camMain, vecTrianglesToRaster, outline);
 }
 
+void VEngine::draw_scene(vCamera& camMain, std::vector<vMesh*>& sceMesh, bool outline){
+    std::vector<triangle> vecTrianglesToRaster;
+
+    // Camera Scale and offset
+    vec3d vecScale(0.5f * (float)camMain.nScreenW, 0.5f * (float)camMain.nScreenH, 1.0f);
+    // Camera offset 
+    vec3d vecOffset(camMain.nScreenOX, camMain.nScreenOY, 0.0f);
+    // Translate coordinate (0,0,0) to centre of camera. 1 to the edges.
+    vec3d vecTranslate(1.0f + camMain.fOffsetX , 1.0f + camMain.fOffsetY , 0.0f);
+
+    for (vMesh* mh : sceMesh){
+        project_mesh(camMain, vecScale, vecOffset, vecTranslate, (*mh), vecTrianglesToRaster, outline);
+    }
+
+    draw_to_frame(camMain, vecTrianglesToRaster, outline);
+}
+
 vec3d VEngine::project_point(vec3d vPoint, vCamera& cam){
     vec2d res;
 

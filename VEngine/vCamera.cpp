@@ -11,6 +11,10 @@ void vCamera::ApplyRotation(mat4x4& matRot, vec3d& vecPivot){
     PointAt(vecLook);
 }
 
+void vCamera::SetLocation(vec3d vecTrans){
+    ApplyTranslation(vecTrans - vecLocation);
+}
+
 void vCamera::ApplyTranslation(vec3d vecTrans){
     // Call parent
     vObject::ApplyTranslation(vecTrans);
