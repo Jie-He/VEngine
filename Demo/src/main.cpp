@@ -12,12 +12,10 @@ class MVEngine : public VEngine{
 		world_colour = vec3d(25, 25, 25);
 
 		#ifdef OPENCV
-		meshCube.LoadMaterialFile("../res/cube.mtl");
 		meshCube.LoadFromObjectFile("../res/cube.obj");
 		#endif
 
 		#ifdef PSVITA
-		meshCube.LoadMaterialFile("app0:/res/cube.mtl");
 		meshCube.LoadFromObjectFile("app0:/res/cube.obj");
 		#endif
 
